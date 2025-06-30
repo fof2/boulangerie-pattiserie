@@ -1,0 +1,19 @@
+{% extends 'gestion/base2.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+            <h2>Confirmer la fin d'affectation</h2>
+        </div>
+        <div class="card-body">
+            <p>Voulez-vous vraiment terminer l'affectation de <strong>{{ affectation.ouvrier.nom }}</strong> au poste <strong>{{ affectation.poste.nom }}</strong> ?</p>
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Confirmer</button>
+                <a href="{{ request.META.HTTP_REFERER|default:'liste_ouvriers' }}" class="btn btn-secondary">Annuler</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

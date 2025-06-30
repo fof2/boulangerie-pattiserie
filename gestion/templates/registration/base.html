@@ -1,0 +1,301 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boulangerie Epi D'Or - ANGRE CHATEAU</title>
+    <link rel="icon" href="{% static 'gestion/favicon.ico' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #8B4513;  /* Brun boulangerie */
+            --secondary-color: #FFD700; /* Or */
+            --accent-color: #A52A2A;   /* Marron rouge */
+            --light-bg: #FFF8E1;       /* Fond clair */
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 5px solid var(--secondary-color);
+            position: relative;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .logo {
+            height: 100px;
+            width: auto;
+            margin-right: 30px;
+        }
+        
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        
+        /* Style pour la section utilisateur */
+        .user-section {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .user-dropdown .dropdown-toggle {
+            color: white;
+            border: 2px solid var(--secondary-color);
+            border-radius: 50px;
+            padding: 8px 15px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-dropdown .dropdown-toggle:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .user-dropdown .dropdown-menu {
+            border: none;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .user-dropdown .dropdown-item {
+            padding: 10px 15px;
+            transition: all 0.3s;
+        }
+        
+        .user-dropdown .dropdown-item:hover {
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+        }
+        
+        .user-dropdown .dropdown-divider {
+            margin: 5px 0;
+        }
+        
+        .login-btn {
+            background-color: var(--secondary-color);
+            color: var(--primary-color);
+            border: none;
+            border-radius: 50px;
+            padding: 8px 20px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .login-btn:hover {
+            background-color: white;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .nav-link {
+            transition: all 0.3s;
+        }
+        
+        .nav-link:hover {
+            color: var(--secondary-color) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- En-tête élégant -->
+    <header class="header text-center">
+        <div class="container">
+            <div class="logo-container">
+                <img src="{% static 'gestion/logo.jpg' %}" alt="Logo Epi D'Or" class="logo">
+                <div>
+                    <h1 class="display-4 fw-bold">BOULANGERIE EPI D'OR</h1>
+                    <p class="lead">ANGRE CHATEAU - Excellence depuis 1950</p>
+                </div>
+            </div>
+            
+            <!-- Section utilisateur -->
+            <div class="user-section">
+                {% if user.is_authenticated %}
+                    <div class="dropdown user-dropdown">
+                        <button class="btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                            <i class="fas fa-user-circle me-2"></i>{{ user.username }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-user me-2"></i>Mon profil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="#">
+                                    <i class="fas fa-cog me-2"></i>Paramètres
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                                    </button>
+                                </form>
+                            </li>
+                        </ul>
+                    </div>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn login-btn">
+                        <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Barre de navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background-color: var(--accent-color);">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> Accueil</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-bread-slice me-1"></i> Produits</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-file-invoice-dollar me-1"></i> Factures</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#"><i class="fas fa-users me-1"></i> Clients</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Contenu principal -->
+    <main class="container my-5">
+        <div class="row">
+            <div class="col-md-3">
+                <!-- Menu latéral -->
+                <div class="card mb-4">
+                    <div class="card-header text-white" style="background-color: var(--primary-color);">
+                        <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-chart-line me-2"></i> Statistiques
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users me-2"></i> Clients
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-box-open me-2"></i> Stock
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-invoice me-2"></i> Facturation
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-cog me-2"></i> Paramètres
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-9">
+                {% block content %}
+                <!-- Le contenu spécifique sera inséré ici -->
+                {% endblock content %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Pied de page professionnel -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <h5><i class="fas fa-map-marker-alt me-2"></i>Nos coordonnées</h5>
+                    <p>12 Rue du Moulin<br>ANGRE CHATEAU<br>Tél: 03 00 00 00 00</p>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-clock me-2"></i>Horaires</h5>
+                    <p>Lundi-Vendredi: 6h-20h<br>Samedi: 6h-19h<br>Dimanche: 7h-13h</p>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-share-alt me-2"></i>Réseaux sociaux</h5>
+                    <div class="social-icons">
+                        <a href="#" class="text-white me-3"><i class="fab fa-facebook-f fa-lg"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+                        <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-tiktok fa-lg"></i></a>
+                    </div>
+                    <p class="mt-3">© 2023 Boulangerie Epi D'Or. Tous droits réservés.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Animation pour les cartes
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.15)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            });
+        });
+        
+        // Animation pour les boutons de navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateX(5px)';
+            });
+            link.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateX(0)';
+            });
+        });
+    </script>
+</body>
+</html>

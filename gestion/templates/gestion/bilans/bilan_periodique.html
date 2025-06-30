@@ -1,0 +1,163 @@
+{% extends 'gestion/base2.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>{{ titre }}</h2>
+        <div>
+            <a href="{% url 'generer_bilan_pdf' periode %}" class="btn btn-danger me-2">
+                <i class="fas fa-file-pdf"></i> Exporter PDF
+            </a>
+            <div class="btn-group">
+                <a href="{% url 'bilan_periodique' 'jour' %}" class="btn btn-outline-secondary {% if periode == 'jour' %}active{% endif %}">Jour</a>
+                <a href="{% url 'bilan_periodique' 'semaine' %}" class="btn btn-outline-secondary {% if periode == 'semaine' %}active{% endif %}">Semaine</a>
+                <a href="{% url 'bilan_periodique' 'mois' %}" class="btn btn-outline-secondary {% if periode == 'mois' %}active{% endif %}">Mois</a>
+                <a href="{% url 'bilan_periodique' 'annee' %}" class="btn btn-outline-secondary {% if periode == 'annee' %}active{% endif %}">Année</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="alert alert-info">
+        Période du {{ date_debut|date:"d/m/Y" }} au {{ date_fin|date:"d/m/Y" }}
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Ventes</h5>
+                    <p class="card-text h4">{{ total_ventes }} FCFA</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Commandes Livreurs</h5>
+                    <p class="card-text h4">{{ total_commandes }} FCFA</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Entrées Stock</h5>
+                    <p class="card-text h4">{{ total_entrees }} FCFA</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Salaires</h5>
+                    <p class="card-text h4">{{ total_salaires }} FCFA</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <h4 class="mb-0">Résumé Financier</h4>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <tbody>
+                        <tr>
+                            <th width="30%">Total des Ventes</th>
+                            <td>{{ total_ventes }} FCFA</td>
+                        </tr>
+                        <tr>
+                            <th>Total des Commandes Livreurs</th>
+                            <td>{{ total_commandes }} FCFA</td>
+                        </tr>
+                        <tr>
+                            <th>Total des Entrées de Stock</th>
+                            <td>{{ total_entrees }} FCFA</td>
+                        </tr>
+                        <tr>
+                            <th>Total des Salaires</th>
+                            <td>{{ total_salaires }} FCFA</td>
+                        </tr>
+                        <tr class="table-active">
+                            <th><strong>BILAN NET</strong></th>
+                            <td><strong>{{ total_ventes|add:total_commandes|sub:total_entrees|sub:total_salaires }} FCFA</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Produits les Plus Vendus</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Produit</th>
+                                    <th>Quantité</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for produit in produits_vendus %}
+                                <tr>
+                                    <td>{{ produit.produit__nom }}</td>
+                                    <td>{{ produit.quantite }}</td>
+                                    <td>{{ produit.total }} FCFA</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">Aucune vente enregistrée</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h4 class="mb-0">Détails des Salaires</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Ouvrier</th>
+                                    <th>Poste</th>
+                                    <th>Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for salaire in salaires %}
+                                <tr>
+                                    <td>{{ salaire.ouvrier.nom }}</td>
+                                    <td>{{ salaire.poste.nom }}</td>
+                                    <td>{{ salaire.montant }} FCFA</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center">Aucun salaire enregistré</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

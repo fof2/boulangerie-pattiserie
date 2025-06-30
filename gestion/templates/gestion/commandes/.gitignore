@@ -1,0 +1,19 @@
+# Django
+*.log
+*.pot
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+
+# Environnement virtuel
+fof/
+venv/
+
+# IDE
+.idea/
+.vscode/
+
+# Fichiers sensibles
+.env
+secrets.json

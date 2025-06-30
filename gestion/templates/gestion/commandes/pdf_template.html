@@ -1,0 +1,71 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Facture Commande #{{ commande.id }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { text-align: center; margin-bottom: 20px; }
+        .info { margin-bottom: 30px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .total { font-weight: bold; font-size: 1.2em; }
+        .footer { margin-top: 50px; text-align: center; font-size: 0.8em; }
+    </style>
+</head>
+<body>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#">Gestion</a>
+            <div class="navbar-nav">
+                <a class="nav-link" href="{% url 'liste_ouvriers' %}">Ouvriers</a>
+                <a class="nav-link" href="{% url 'liste_postes' %}">Postes</a>
+            </div>
+        </div>
+    </nav>
+    <div class="header">
+        <h1>Facture Commande N*{{ commande.id }}</h1>
+        <p>Boulangerie du Quartier</p>
+    </div>
+    
+    <div class="info">
+        <p><strong>Date:</strong> {{ commande.date|date:"d/m/Y H:i" }}</p>
+        <p><strong>Livreur:</strong> {{ commande.livreur.nom }}</p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Produit</th>
+                <th>Prix unitaire</th>
+                <th>Quantité</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in commande.lignes.all %}
+            <tr>
+                <td>{{ ligne.produit.nom }}</td>
+                <td>{{ ligne.produit.prix_livreur }} FRANC CFA</td>
+                <td>{{ ligne.quantite }}</td>
+                <td>{{ ligne.total_ligne }} FRANC CFA</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" class="total">Total Général</td>
+                <td class="total">{{ commande.total }} FRANC CFA</td>
+            </tr>
+        </tfoot>
+    </table>
+    
+    <div class="footer">
+        <p>Merci pour votre confiance !</p>
+        <p>Boulangerie du Quartier - Tél: 01 03 41 96 90</p>
+    </div>
+</body>
+</html>
+

@@ -1,0 +1,65 @@
+{% extends 'gestion/base2.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Commandes par livreur</h2>
+
+    <!-- Barre de recherche -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" action="." class="row g-3">
+                <div class="col-md-8">
+                    <input type="text" name="q" class="form-control" placeholder="Rechercher un livreur..." 
+                           value="{{ request.GET.q }}">
+                </div>
+                <div class="col-md-4">
+                    <button type="submit" class="btn btn-primary">Rechercher</button>
+                    <a href="." class="btn btn-secondary">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Statistiques par livreur -->
+    <div class="card">
+        <div class="card-header">
+            <h5>Statistiques des commandes par livreur</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Livreur</th>
+                            <th>Nombre de commandes</th>
+                            <th>Total des commandes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for livreur in livreurs_stats %}
+                        <tr>
+                            <td>{{ livreur.nom }} {{ livreur.prenom }}</td>
+                            <td>{{ livreur.nb_commandes }}</td>
+                            <td>{{ livreur.total_commandes|default:0|floatformat:2 }} F CFA</td>
+                            <td>
+                                <a href="{% url 'commandes_par_livreur' livreur.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Voir
+                                </a>
+                                <a href="{% url 'commande_creer_pour_livreur' livreur.id %}" class="btn btn-sm btn-success">
+                                    <i class="fas fa-plus"></i> Ajouter
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center">Aucun livreur trouvé</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

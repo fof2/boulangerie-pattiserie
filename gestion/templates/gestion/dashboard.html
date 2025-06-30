@@ -1,0 +1,372 @@
+{% extends 'gestion/base2.html' %}
+{% load humanize %}
+
+{% block content %}
+{% load custom_filters %}
+<div class="container-fluid dashboard-container">
+
+    <!-- Header avec date et boutons -->
+    <div class="dashboard-header bg-danger text-white p-4 rounded-top">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h1 class="h3 mb-0"><i class="fas fa-tachometer-alt mr-2"></i> Tableau de Bord</h1>
+                <small class="text-white">{{ aujourdhui }}</small>
+            </div>
+            <div class="btn-group">
+                <button class="btn btn-light dropdown-toggle" data-toggle="dropdown">
+                    <i class="fas fa-download"></i> Exporter
+                </button>
+                <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{% url 'generer_bilan_pdf' 'jour' %}">Bilan Journalier (PDF)</a>
+                    <a class="dropdown-item" href="{% url 'generer_bilan_pdf' 'semaine' %}">Bilan Hebdo (PDF)</a>
+                    <div class="dropdown-divider"></div>
+                    <a class="dropdown-item" href="#"><i class="fas fa-file-excel"></i> Excel</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cartes Statistiques -->
+    <div class="row stats-cards mt-4">
+        <!-- Ventes du jour -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Ventes Aujourd'hui</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.ventes_jour|intcomma }} FCFA</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Commandes du jour -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Commandes Livreurs</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.commandes_jour }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-truck fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produits vendus -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Produits Vendus</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.produits_vendus }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-bread-slice fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ventes hebdo -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Ventes (7 jours)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ stats.ventes_semaine|intcomma }} FCFA</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenu défilable -->
+    <div class="dashboard-scrollable">
+
+        <!-- Top Produits -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-star mr-2"></i>Top 10 des Produits (7 jours)
+                    </h6>
+                    <a href="{% url 'bilan_periodique' 'semaine' %}" class="btn btn-sm btn-light">
+                        Voir le bilan complet <i class="fas fa-arrow-right ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive scrollable-content">
+                    <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Produit</th>
+                                <th>Quantité</th>
+                                <th>Chiffre d'affaires</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produit in sections.top_produits %}
+                            <tr>
+                                <td>{{ produit.produit__nom }}</td>
+                                <td>{{ produit.quantite }}</td>
+                                <td class="font-weight-bold">{{ produit.total|intcomma }} FCFA</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">Aucune vente enregistrée</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Alertes Stock -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-warning">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Alertes Stock
+                    </h6>
+                    <a href="{% url 'ajouter_entree_stock' %}" class="btn btn-sm btn-light">
+                        <i class="fas fa-plus mr-1"></i> Nouvelle entrée
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if sections.alertes_stock %}
+                <div class="table-responsive scrollable-content">
+                    <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>Produit</th>
+                                <th>Stock restant</th>
+                                <th>Dernière entrée</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for produit in sections.alertes_stock %}
+                            <tr class="{% if produit.stock < 3 %}table-danger{% endif %}">
+                                <td>{{ produit.nom }}</td>
+                                <td class="font-weight-bold">{{ produit.stock }}</td>
+                                <td>
+                                    {% with last_entry=produit.entrees.all|first %}
+                                        {{ last_entry.date|date:"d/m/Y"|default:"-" }}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <a href="{% url 'ajouter_entree_stock' %}?produit={{ produit.id }}" 
+                                       class="btn btn-sm btn-danger">
+                                        Réapprovisionner
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <strong>Tout est bon !</strong> Aucun produit en rupture imminente.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Commandes en attente -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-danger">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-white">
+                        <i class="fas fa-clock mr-2"></i>Commandes en Attente de Paiement
+                    </h6>
+                    <a href="{% url 'commande_liste' %}" class="btn btn-sm btn-light">
+                        Voir toutes <i class="fas fa-list ml-1"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if sections.commandes_attente %}
+                <div class="table-responsive scrollable-content">
+                    <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                        <thead class="thead-light">
+                            <tr>
+                                <th>N° Commande</th>
+                                <th>Livreur</th>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for commande in sections.commandes_attente %}
+                            <tr>
+                                <td>#{{ commande.id }}</td>
+                                <td>{{ commande.livreur.nom }}</td>
+                                <td>{{ commande.date|date:"d/m/Y H:i" }}</td>
+                                <td class="font-weight-bold">{{ commande.total|intcomma }} FCFA</td>
+                                <td>
+                                    <a href="{% url 'commande_marquer_payee' commande.pk %}" 
+                                       class="btn btn-sm btn-danger">
+                                        <i class="fas fa-check mr-1"></i> Payer
+                                    </a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle mr-2"></i>
+                    <strong>Parfait !</strong> Toutes les commandes sont payées.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bilans Rapides -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-primary">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-file-alt mr-2"></i>Bilans Rapides
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for bilan in sections.bilans %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-left-primary shadow h-100">
+                            <div class="card-body text-center">
+                                <h5 class="card-title">Bilan {{ bilan.nom }}</h5>
+                                <div class="btn-group-vertical w-100">
+                                    <a href="{% url 'bilan_periodique' bilan.periode %}" 
+                                       class="btn btn-outline-primary mb-2">
+                                        <i class="fas fa-eye mr-1"></i> Visualiser
+                                    </a>
+                                    <a href="{% url 'generer_bilan_pdf' bilan.periode %}" 
+                                       class="btn btn-outline-danger">
+                                        <i class="fas fa-file-pdf mr-1"></i> Télécharger
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-container {
+        padding: 20px;
+        height: calc(100vh - 60px);
+        overflow: hidden;
+    }
+    
+    .dashboard-scrollable {
+        height: calc(100vh - 300px);
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+    
+    .scrollable-content {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #dc3545;
+        border-radius: 10px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #c82333;
+    }
+    
+    /* Hover effects */
+    .table-hover tbody tr:hover {
+        background-color: rgba(220, 53, 69, 0.05);
+    }
+    
+    /* Card transitions */
+    .card {
+        transition: transform 0.3s, box-shadow 0.3s;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+        .dashboard-scrollable {
+            height: auto;
+            overflow-y: visible;
+        }
+        
+        .scrollable-content {
+            max-height: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Animation des cartes stats
+    $('.stats-cards .card').each(function(i) {
+        $(this).delay(i*150).animate({opacity: 1}, 300);
+    });
+    
+    // Tooltips
+    $('[data-toggle="tooltip"]').tooltip();
+    
+    // Actualisation automatique toutes les 5 minutes
+    setTimeout(function(){
+        window.location.reload();
+    }, 300000);
+});
+</script>
+{% endblock %}

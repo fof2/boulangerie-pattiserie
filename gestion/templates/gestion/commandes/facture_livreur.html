@@ -1,0 +1,84 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Facture {{ livreur.nom }} - {{ selected_month_name }} {{ selected_year }}</title>
+    <style>
+        body { font-family: Arial, sans-serif; font-size: 12px; }
+        .header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+        .info { margin-bottom: 15px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 5px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .total { font-weight: bold; }
+        .footer { margin-top: 30px; text-align: center; font-size: 0.8em; border-top: 1px solid #eee; padding-top: 10px; }
+        .statut-paye { color: green; }
+        .statut-impaye { color: orange; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h2>Boulangerie du Quartier</h2>
+        <h3>Facture des commandes - {{ selected_month_name }} {{ selected_year }}</h3>
+        <p>Tél: 01 03 41 96 90</p>
+    </div>
+    
+    <div class="info">
+        <p><strong>Livreur:</strong> {{ livreur.nom }} {{ livreur.prenom }}</p>
+        <p><strong>Période:</strong> {{ selected_month_name }} {{ selected_year }}</p>
+        <p><strong>Nombre de commandes:</strong> {{ commandes.count }}</p>
+    </div>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>N°</th>
+                <th>Date</th>
+                <th>Produits</th>
+                <th>Total</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for commande in commandes %}
+            <tr>
+                <td>{{ commande.id }}</td>
+                <td>{{ commande.date|date:"d/m/Y" }}</td>
+                <td>
+                    {% for ligne in commande.lignes.all %}
+                    {{ ligne.produit.nom }} ({{ ligne.quantite }} × {{ ligne.produit.prix_livreur }} FCFA)<br>
+                    {% endfor %}
+                </td>
+                <td>{{ commande.total|floatformat:2 }} FCFA</td>
+                <td class="{% if commande.payee %}statut-paye{% else %}statut-impaye{% endif %}">
+                    {% if commande.payee %}Payée{% else %}Impayée{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total">
+                <td colspan="3">Total Général</td>
+                <td>{{ total_commandes_livreur|floatformat:2 }} FCFA</td>
+                <td></td>
+            </tr>
+            <tr class="total">
+                <td colspan="3">Total Payé</td>
+                <td>{{ total_paye|floatformat:2 }} FCFA</td>
+                <td></td>
+            </tr>
+            <tr class="total">
+                <td colspan="3">Total Impayé</td>
+                <td>{{ total_impaye|floatformat:2 }} FCFA</td>
+                <td></td>
+            </tr>
+        </tfoot>
+    </table>
+    
+    <div class="footer">
+        <p>Merci pour votre confiance !</p>
+        <p>Facture générée le {% now "d/m/Y H:i" %}</p>
+    </div>
+</body>
+</html>

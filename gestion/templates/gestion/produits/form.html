@@ -1,0 +1,105 @@
+{% extends 'gestion/base2.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4">
+        {% if object %}Modifier{% else %}Ajouter{% endif %} un Produit
+        {% if object %}<small class="text-muted">{{ object.nom }}</small>{% endif %}
+    </h2>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.nom.id_for_label }}" class="form-label">Nom du Produit</label>
+                        {{ form.nom }}
+                        {% if form.nom.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.nom.errors.as_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.stock.id_for_label }}" class="form-label">Stock Initial</label>
+                        {{ form.stock }}
+                        {% if form.stock.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.stock.errors.as_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.prix_vente.id_for_label }}" class="form-label">Prix de Vente (F CFA)</label>
+                        <div class="input-group">
+                            {{ form.prix_vente }}
+                            <span class="input-group-text">.00</span>
+                        </div>
+                        {% if form.prix_vente.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.prix_vente.errors.as_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <label for="{{ form.prix_livreur.id_for_label }}" class="form-label">Prix Livreur (F CFA)</label>
+                        <div class="input-group">
+                            {{ form.prix_livreur }}
+                            <span class="input-group-text">.00</span>
+                        </div>
+                        {% if form.prix_livreur.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.prix_livreur.errors.as_text }}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <a href="{% url 'produit_liste' %}" class="btn btn-secondary me-md-2">
+                        <i class="fas fa-arrow-left"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Style pour les champs invalides */
+    input:invalid {
+        border-color: #dc3545;
+    }
+    
+    /* Style pour les sélecteurs */
+    select.form-control {
+        appearance: auto;
+        -webkit-appearance: auto;
+    }
+</style>
+
+<script>
+// Formatage automatique des prix
+document.addEventListener('DOMContentLoaded', function() {
+    const prixFields = document.querySelectorAll('input[type="number"]');
+    
+    prixFields.forEach(field => {
+        field.addEventListener('blur', function() {
+            if (this.value && !isNaN(this.value)) {
+                this.value = parseFloat(this.value).toFixed(2);
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

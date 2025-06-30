@@ -1,0 +1,35 @@
+{% extends 'gestion/base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+            <h2><i class="bi bi-exclamation-triangle"></i> Confirmation de suppression</h2>
+        </div>
+        
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="alert alert-warning">
+                    <h4 class="alert-heading">Attention !</h4>
+                    <p>Vous êtes sur le point de supprimer définitivement l'ouvrier :</p>
+                    <p class="fw-bold fs-4">{{ object.nom }} {{ object.prenom }}</p>
+                    <hr>
+                    <p class="mb-0">Cette action est irréversible. Voulez-vous vraiment continuer ?</p>
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <a href="{% url 'liste_ouvriers' %}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash"></i> Confirmer la suppression
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

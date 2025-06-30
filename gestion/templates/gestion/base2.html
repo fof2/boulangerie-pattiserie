@@ -1,0 +1,302 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boulangerie Epi D'Or - ANGRE CHATEAU</title>
+    <link rel="icon" href="{% static 'gestion/favicon.ico' %}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        :root {
+            --primary-color: #8B4513;  /* Brun boulangerie */
+            --secondary-color: #FFD700; /* Or */
+            --accent-color: #A52A2A;   /* Marron rouge */
+            --light-bg: #FFF8E1;       /* Fond clair */
+        }
+        
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Montserrat', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 1rem 0;
+            border-bottom: 5px solid var(--secondary-color);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            justify-content: start;
+            padding: 0 15px;
+        }
+        
+        .logo {
+            height: 80px;
+            width: 80px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid var(--secondary-color);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-right: 20px;
+        }
+        
+        .brand-text {
+            text-align: left;
+        }
+        
+        .brand-text h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .brand-text p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 0;
+        }
+        
+        .footer {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            padding: 2rem 0;
+            margin-top: auto;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+            padding: 1rem 1.5rem;
+            font-weight: 600;
+        }
+        
+        .list-group-item {
+            border-left: none;
+            border-right: none;
+            padding: 1rem 1.5rem;
+            font-weight: 500;
+        }
+        
+        .list-group-item:last-child {
+            border-bottom: none;
+            border-radius: 0 0 10px 10px;
+        }
+        
+        .list-group-item i {
+            width: 24px;
+            text-align: center;
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        
+        .user-section {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+        }
+        
+        .user-dropdown .dropdown-toggle {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: white;
+            border: 2px solid var(--secondary-color);
+            border-radius: 50px;
+            padding: 8px 15px;
+            font-weight: 500;
+        }
+        
+        .social-icons a {
+            color: white;
+            font-size: 1.2rem;
+            margin-right: 15px;
+            transition: all 0.3s;
+        }
+        
+        .social-icons a:hover {
+            color: var(--secondary-color);
+            transform: translateY(-3px);
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .logo-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            .logo {
+                margin-right: 0;
+                margin-bottom: 15px;
+            }
+            .user-section {
+                position: static;
+                margin-top: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- En-tête professionnel -->
+    <header class="header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <div class="logo-container">
+                        <img src="{% static 'gestion/images/logo.png' %}" alt="Logo Epi D'Or" class="logo">
+                        <div class="brand-text">
+                            <h1>BOULANGERIE EPI D'OR</h1>
+                            <p>ANGRE CHATEAU - Excellence depuis 1950</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="user-section">
+                        {% if user.is_authenticated %}
+                            <div class="dropdown user-dropdown">
+                                <button class="btn dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user-circle me-2"></i>{{ user.username }}
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profil</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form method="post" action="{% url 'logout' %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="dropdown-item">
+                                                <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-outline-light">
+                                <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenu principal -->
+    <main class="container my-4 flex-grow-1">
+        <div class="row">
+            <!-- Menu latéral -->
+            <div class="col-lg-3">
+                <div class="card">
+                    <div class="card-header">
+                        <i class="fas fa-bars me-2"></i>Menu Principal
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="#" class="list-group-item list-group-item-action active">
+                            <i class="fas fa-chart-line"></i> Tableau de bord
+                        </a>
+                        <a href="{% url 'liste_ouvriers' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-users"></i> Ouvriers
+                        </a>
+                        <a href="{% url 'liste_postes' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-briefcase"></i> Postes
+                        </a>
+                        <a href="{% url 'livreur_liste' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-truck"></i> Livreurs
+                        </a>
+                        <a href="{% url 'produit_liste' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-bread-slice"></i> Produits
+                        </a>
+                        <a href="{% url 'commande_liste' %}" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-invoice"></i> Commandes
+                        </a>
+                        <a href="#" class="list-group-item list-group-item-action">
+                            <i class="fas fa-file-invoice-dollar"></i> Factures
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Contenu dynamique -->
+            <div class="col-lg-9">
+                {% block content %}
+                <!-- Le contenu spécifique sera inséré ici -->
+                {% endblock content %}
+            </div>
+        </div>
+    </main>
+
+    <!-- Pied de page professionnel -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5><i class="fas fa-map-marker-alt me-2"></i>Nos coordonnées</h5>
+                    <address>
+                        12 Rue du Moulin<br>
+                        ANGRE CHATEAU<br>
+                        <i class="fas fa-phone me-2"></i>03 00 00 00 00
+                    </address>
+                </div>
+                <div class="col-md-4 mb-4 mb-md-0">
+                    <h5><i class="fas fa-clock me-2"></i>Horaires</h5>
+                    <ul class="list-unstyled">
+                        <li>Lundi-Vendredi: 6h-20h</li>
+                        <li>Samedi: 6h-19h</li>
+                        <li>Dimanche: 7h-13h</li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-share-alt me-2"></i>Suivez-nous</h5>
+                    <div class="social-icons mb-3">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+                    <p class="mb-0">© 2023 Boulangerie Epi D'Or. Tous droits réservés.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Active le tooltip de Bootstrap
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl)
+        });
+        
+        // Animation pour les cartes
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px)';
+                this.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.15)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = '';
+                this.style.boxShadow = '0 4px 6px rgba(0, 0, 0, 0.1)';
+            });
+        });
+    </script>
+</body>
+</html>

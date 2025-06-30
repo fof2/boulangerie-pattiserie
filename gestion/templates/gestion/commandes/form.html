@@ -1,0 +1,171 @@
+{% extends 'gestion/base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h2>Nouvelle Commande</h2>
+        </div>
+        <div class="card-body">
+            <form method="post" id="commande-form">
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Livreur</label>
+                            {{ form.livreur }}
+                        </div>
+                    </div>
+                </div>
+                
+                <h4 class="mb-3">Produits</h4>
+                
+                <div id="formset-container">
+                    {{ formset.management_form }}
+                    {% for form in formset %}
+                    <div class="row formset-row mb-3 align-items-end g-2" id="form-{{ forloop.counter0 }}">
+                        <div class="col-md-4">
+                            <label>Produit</label>
+                            {{ form.produit }}
+                        </div>
+                        <div class="col-md-2">
+                            <label>Quantité</label>
+                            {{ form.quantite }}
+                        </div>
+                        <div class="col-md-2">
+                            <label>Prix unitaire</label>
+                            <input type="text" class="form-control prix-unitaire" 
+                                value="{% if form.instance.produit %}{{ form.instance.produit.prix_livreur }}{% endif %}" 
+                                readonly>
+                        </div>
+                        <div class="col-md-2">
+                            <label>Total</label>
+                            <input type="text" class="form-control total-ligne" 
+                                value="{% if form.instance.produit %}{{ form.instance.produit.prix_livreur|default:0 }}{% else %}0.00{% endif %} FCFA" 
+                                readonly>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            {% if form.DELETE %}
+                                <div class="form-check">
+                                    <label class="form-check-label">
+                                        {{ form.DELETE }} Supprimer
+                                    </label>
+                                </div>
+                            {% endif %}
+                        </div>
+                        {{ form.id }}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" id="add-more" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i> Ajouter un produit
+                    </button>
+                    <div>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Enregistrer
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    // Fonction pour mettre à jour le prix
+    function updatePrice(select) {
+        const row = $(select).closest('.formset-row');
+        const produitId = $(select).val();
+        const prixInput = row.find('.prix-unitaire');
+        
+        if (produitId) {
+            $.get(`/commandes/get_prix_produit/${produitId}/`, function(data) {
+                prixInput.val(data.prix_livreur);
+                calculateTotal(row);
+            }).fail(function() {
+                console.error("Erreur lors de la récupération du prix");
+            });
+        } else {
+            prixInput.val('');
+            calculateTotal(row);
+        }
+    }
+
+    // Fonction pour calculer le total
+    function calculateTotal(row) {
+        const quantite = parseFloat(row.find('[name*="-quantite"]').val()) || 0;
+        const prix = parseFloat(row.find('.prix-unitaire').val()) || 0;
+        const total = (quantite * prix).toFixed(2);
+        row.find('.total-ligne').val(total + ' FCFA');
+    }
+
+    // Ajouter un nouveau formulaire
+    $('#add-more').click(function() {
+        const totalForms = $('#id_form-TOTAL_FORMS');
+        const formCount = parseInt(totalForms.val());
+        const newFormHtml = `
+        <div class="row formset-row mb-3 align-items-end g-2" id="form-${formCount}">
+            <div class="col-md-4">
+                <select name="form-${formCount}-produit" class="form-select produit-select">
+                    {% for produit in formset.empty_form.produit.field.choices %}
+                        <option value="{{ produit.0 }}">{{ produit.1 }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="number" name="form-${formCount}-quantite" min="1" 
+                       class="form-control" value="1">
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control prix-unitaire" readonly>
+            </div>
+            <div class="col-md-2">
+                <input type="text" class="form-control total-ligne" value="0.00 FCFA" readonly>
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+                <div class="form-check">
+                    <input type="checkbox" name="form-${formCount}-DELETE" class="form-check-input">
+                    <label class="form-check-label">Supprimer</label>
+                </div>
+            </div>
+            <input type="hidden" name="form-${formCount}-id" id="id_form-${formCount}-id">
+        </div>`;
+        
+        $('#formset-container').append(newFormHtml);
+        totalForms.val(formCount + 1);
+        
+        // Configurer les événements pour le nouveau formulaire
+        $(`#form-${formCount} .produit-select`).change(function() {
+            updatePrice(this);
+        });
+        
+        $(`#form-${formCount} [name*="-quantite"]`).change(function() {
+            calculateTotal($(this).closest('.formset-row'));
+        });
+    });
+
+    // Configurer les événements pour les formulaires existants
+    $(document).on('change', '.produit-select', function() {
+        updatePrice(this);
+    });
+
+    $(document).on('change', '[name*="-quantite"]', function() {
+        calculateTotal($(this).closest('.formset-row'));
+    });
+
+    // Initialiser les prix pour les formulaires existants
+    $('.produit-select').each(function() {
+        if ($(this).val()) {
+            // Simuler un changement pour déclencher le calcul
+            $(this).trigger('change');
+        }
+    });
+});
+</script>
+{% endblock %}

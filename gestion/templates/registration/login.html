@@ -1,0 +1,40 @@
+{# gestion/templates/registration/login.html #}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Connexion{% endblock %}
+
+{% block content %}
+<div class="auth-card mx-auto" style="max-width: 500px;">
+    <div class="auth-header text-center mb-4">
+        <img src="{% static 'gestion/logo.jpg' %}" alt="Logo Epi D'Or" class="auth-logo mb-3" style="width: 100px;">
+        <h3>Connexion au système</h3>
+    </div>
+
+    <div class="card-body p-4 bg-white shadow rounded">
+        <form method="post">
+            {% csrf_token %}
+
+            {% if form.errors %}
+                <div class="alert alert-danger">
+                    Identifiants incorrects. Veuillez réessayer.
+                </div>
+            {% endif %}
+
+            <div class="mb-3">
+                <label for="username" class="form-label">Nom d'utilisateur</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Mot de passe</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Se connecter
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}

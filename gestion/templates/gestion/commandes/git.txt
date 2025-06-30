@@ -1,0 +1,11 @@
+
+git init
+
+# Ajoutez tous les fichiers
+git add .
+
+# Vérifiez les fichiers qui seront commités
+git status
+
+# Faites le premier commit
+git commit -m "Initial commit - Projet Boulangerie-Pâtisserie"

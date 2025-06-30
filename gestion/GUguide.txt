@@ -1,0 +1,137 @@
+🔶 1. Gestion des Ouvriers
+Permet au propriétaire de :
+
+Ajouter / modifier / supprimer des ouvriers
+
+Consulter la liste des ouvriers
+
+Affecter un ouvrier à un ou plusieurs postes
+
+Consulter les affectations passées
+
+Calculer automatiquement les salaires (en fonction du poste et de la durée)
+
+📦 Modèles : Ouvrier, Poste, AffectationPoste
+
+🔶 2. Gestion des Postes
+Permet de :
+
+Définir les différents types de postes (pétrisseur, fournier, nettoyeur…)
+
+Définir le mode de rémunération (journalier, mensuel, etc.)
+
+Voir quels ouvriers occupent ce poste
+
+📦 Modèle : Poste
+
+🔶 3. Gestion des Livreurs
+Permet de :
+
+Ajouter / approuver des livreurs
+
+Suivre leurs commandes
+
+Voir leur historique de ventes
+
+Gérer leur statut (actif/inactif)
+
+📦 Modèle : Livreur
+
+🔶 4. Gestion des Produits / Pain
+Permet de :
+
+Ajouter des produits (pain, viennoiseries, etc.)
+
+Suivre le stock
+
+Définir le prix au détail et le prix pour les livreurs
+
+📦 Modèle : Produit
+
+🔶 5. Gestion des Commandes (Livreur)
+Permet de :
+
+Créer une commande pour un livreur
+
+Ajouter les lignes de commande (produit + quantité)
+
+Calculer automatiquement le total
+
+Générer une facture
+
+📦 Modèles : CommandeLivreur, LigneCommande
+
+🔶 6. Gestion des Ventes Directes (Boutique)
+Permet de :
+
+Enregistrer une vente rapide au comptoir
+
+Suivre le stock en temps réel
+
+Générer un reçu imprimable
+
+📦 Modèle possible : VenteSimple (facultatif selon priorité)
+
+🔶 7. Gestion des Stocks
+Permet de :
+
+Visualiser le stock actuel
+
+Réduire automatiquement le stock après une commande
+
+Ajouter manuellement de la production
+
+Détecter les ruptures de stock
+
+📦 Utilise le modèle Produit
+
+🔶 8. Gestion de la Facturation
+Permet de :
+
+Générer des factures HTML ou PDF
+
+Imprimer les factures
+
+Archiver les factures pour chaque commande
+
+📦 Intégré à CommandeLivreur
+
+🔶 9. Tableau de bord / Statistiques
+Permet de :
+
+Voir les indicateurs clés : total des ventes, stock restant, livreurs actifs, etc.
+
+Générer des graphiques (via Chart.js par exemple)
+
+Avoir une vue claire sur les performances
+
+🔶 10. Gestion des utilisateurs et des rôles
+Permet de :
+
+Avoir plusieurs types d'utilisateurs (ex : propriétaire, gérant, vendeur)
+
+Limiter l’accès à certaines parties de l’app
+
+📦 Utilise User + Group ou un modèle personnalisé
+
+✅ CONSEIL POUR COMMENCER
+Tu peux suivre cette progression logique :
+
+Gestion des Postes
+
+Gestion des Ouvriers + affectation aux postes
+
+Gestion des Produits
+
+Gestion des Livreurs
+
+Gestion des Commandes + facturation
+
+Interface personnalisée (vues HTML)
+
+Ajout du tableau de bord dynamique
+
+Ajout de la vente directe au comptoir (optionnel)
+
+Souhaites-tu commencer par la gestion des ouvriers et des postes, avec les modèles + vues + interface pour les gérer toi-même sans passer par l’admin Django ?
+Je peux t’envoyer tout ça prêt à coller.

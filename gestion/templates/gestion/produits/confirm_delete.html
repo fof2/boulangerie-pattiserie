@@ -1,0 +1,44 @@
+{% extends 'gestion/base2.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card border-danger">
+        <div class="card-header bg-danger text-white">
+            <h3><i class="fas fa-exclamation-triangle"></i> Confirmation de suppression</h3>
+        </div>
+        
+        <div class="card-body">
+            <h4 class="card-title">Êtes-vous sûr de vouloir supprimer ce produit ?</h4>
+            
+            <div class="alert alert-warning mt-4">
+                <strong>Produit:</strong> {{ object.nom }}<br>
+                <strong>Stock restant:</strong> {{ object.stock }} unités<br>
+                <strong>Prix de vente:</strong> {{ object.prix_vente }} F CFA
+            </div>
+            
+            <p class="text-danger">
+                <i class="fas fa-info-circle"></i> Attention: Cette action est irréversible.
+                Toutes les commandes associées à ce produit seront affectées.
+            </p>
+            
+            <form method="post" class="mt-4">
+                {% csrf_token %}
+                
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'produit_liste' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Annuler
+                    </a>
+                    
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmer la suppression
+                    </button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="card-footer text-muted">
+            <small>Action enregistrée dans l'historique des modifications</small>
+        </div>
+    </div>
+</div>
+{% endblock %}

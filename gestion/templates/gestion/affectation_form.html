@@ -1,0 +1,15 @@
+{% extends "gestion/base2.html" %}
+
+{% block content %}
+<h1>{% if ouvrier %}Modifier{% else %}Créer{% endif %} une affectation</h1>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Enregistrer</button>
+</form>
+
+<a href="{% if poste %}{% url 'detail_poste' poste.id %}{% else %}{% url 'liste_postes' %}{% endif %}">
+  Annuler
+</a>
+{% endblock %}

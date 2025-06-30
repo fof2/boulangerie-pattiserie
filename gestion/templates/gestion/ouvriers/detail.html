@@ -1,0 +1,106 @@
+
+{% extends 'gestion/base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h2>Détails de l'ouvrier: {{ ouvrier.nom }}</h2>
+        </div>
+        
+        <div class="card-body">
+            <h3>Historique des affectations</h3>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Poste</th>
+                        <th>Date début</th>
+                        <th>Date fin</th>
+                        <th>Statut</th> {# Nouvelle colonne #}
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for affectation in affectations %}
+                    <tr>
+                        <td>{{ affectation.poste.nom }}</td>
+                        <td>{{ affectation.date_debut|date:"d/m/Y" }}</td>
+                        <td>{{ affectation.date_fin|date:"d/m/Y"|default:"-" }}</td> {# Afficher un tiret si pas de date de fin #}
+                        <td>
+                            {% if affectation.date_fin == None %}
+                                <span class="badge bg-success">Actif</span> {# Indicateur visuel #}
+                            {% else %}
+                                <span class="badge bg-secondary">Terminé</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <a href="{% url 'modifier_affectation' affectation.id %}" class="btn btn-sm btn-warning">
+                                Modifier
+                            </a>
+                            {# Option de 'Terminer' l'affectation si elle est active #}
+                            {% if affectation.date_fin == None %}
+                                <a href="{% url 'terminer_affectation' affectation.id %}" class="btn btn-sm btn-danger">
+                                    Terminer maintenant
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5">Aucune affectation pour cet ouvrier.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- UN SEUL FORMULAIRE CORRECTEMENT CONFIGURÉ -->
+            <h4 class="mt-4">Affecter à un nouveau poste</h4>
+            <form method="post" action="{% url 'ajouter_affectation' ouvrier.id %}">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Poste occupé:</label>
+                            <select name="poste" class="form-select" required>
+                                <option value="">---------</option>
+                                {% for poste in postes_disponibles %}
+                                <option value="{{ poste.id }}">
+                                    {{ poste.nom }} ({{ poste.remuneration }} {{ poste.get_mode_paiement_display }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label>Date de début:</label>
+                            <input type="date" name="date_debut" class="form-control" required>
+                        </div>
+                    </div>
+    
+                </div>
+                
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle"></i> Enregistrer l'affectation
+                    </button>
+                    <a href="{% url 'ajouter_ouvrier' %}" class="btn btn-success ms-2">
+                        <i class="bi bi-plus-circle"></i> Nouvel ouvrier
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% if form.errors %}
+<div class="alert alert-danger">
+    {% for field, errors in form.errors.items %}
+        {% for error in errors %}
+            <p>{{ error }}</p>
+        {% endfor %}
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}
