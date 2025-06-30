@@ -5,6 +5,17 @@ from django.templatetags.static import static
 from django.template.loader import render_to_string, get_template
 from io import BytesIO
 from django.http import JsonResponse
+import os
+import base64
+from django.shortcuts import get_object_or_404
+from django.http import HttpResponse
+from django.template.loader import render_to_string
+from django.conf import settings
+from datetime import datetime
+from calendar import month_name
+from xhtml2pdf import pisa
+from .models import CommandeLivreur, Livreur
+from django.conf import settings
 from django.db.models import Sum, Count, Q
 from django.http import HttpResponse
 from django.template.loader import render_to_string
@@ -109,72 +120,133 @@ class CommandeDetailView(DetailView):
         context['livreur'] = self.object.livreur 
         # Vous pouvez ajouter d'autres données au contexte ici si nécessaire
         return context
-    
-def generer_facture_livreur(request, livreur_id):
-    livreur = get_object_or_404(Livreur, pk=livreur_id)
-    
-    # Gestion des paramètres month/year
-    month = request.GET.get('month')
-    year = request.GET.get('year', datetime.now().year)
+
+
+
+def image_to_base64(image_path):
+    """Convertit une image en base64 pour l'intégration directe dans le HTML"""
+    if not image_path or not os.path.exists(image_path):
+        return None
     
     try:
-        year = int(year)
-        if month:
-            month = int(month)
-            selected_month_name = month_name[month]
-        else:
+        with open(image_path, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read()).decode('utf-8')
+        
+        extension = os.path.splitext(image_path)[1][1:]  # 'png' ou 'jpg'
+        return f"data:image/{extension};base64,{encoded_string}"
+    except Exception as e:
+        print(f"Erreur lors de la conversion de l'image: {e}")
+        return None
+
+def get_image_path(filename):
+    """Retourne le chemin absolu de l'image"""
+    # Déterminer le répertoire static
+    static_dir = os.path.join(settings.BASE_DIR, 'static', 'gestion', 'images')
+    
+    # Crée le répertoire s'il n'existe pas
+    os.makedirs(static_dir, exist_ok=True)
+    
+    # Essaye différentes extensions
+    for ext in ['.png', '.jpg', '.jpeg']:
+        path = os.path.join(static_dir, f"{filename}{ext}")
+        if os.path.exists(path):
+            return path
+    
+    # Si aucune image n'est trouvée, essayer dans STATIC_ROOT si défini
+    if hasattr(settings, 'STATIC_ROOT') and settings.STATIC_ROOT:
+        static_root_dir = os.path.join(settings.STATIC_ROOT, 'gestion', 'images')
+        for ext in ['.png', '.jpg', '.jpeg']:
+            path = os.path.join(static_root_dir, f"{filename}{ext}")
+            if os.path.exists(path):
+                return path
+    
+    return None
+
+def generer_facture_livreur(request, livreur_id):
+    """Génère la facture PDF pour un livreur"""
+    try:
+        # Récupération du livreur
+        livreur = get_object_or_404(Livreur, pk=livreur_id)
+        
+        # Gestion des paramètres month/year
+        month = request.GET.get('month')
+        year = request.GET.get('year', datetime.now().year)
+        
+        try:
+            year = int(year)
+            if month:
+                month = int(month)
+                selected_month_name = month_name[month]
+            else:
+                selected_month_name = "Tous les mois"
+        except (ValueError, TypeError):
+            month = None
+            year = datetime.now().year
             selected_month_name = "Tous les mois"
-    except (ValueError, TypeError):
-        month = None
-        year = datetime.now().year
-        selected_month_name = "Tous les mois"
-    
-    # Filtrage des commandes
-    commandes = CommandeLivreur.objects.filter(livreur=livreur)
-    if month and year:
-        commandes = commandes.filter(
-            date__year=year,
-            date__month=month
+        
+        # Filtrage des commandes
+        commandes = CommandeLivreur.objects.filter(livreur=livreur)
+        if month and year:
+            commandes = commandes.filter(
+                date__year=year,
+                date__month=month
+            )
+        
+        # Calcul des totaux
+        total_commandes_livreur = commandes.aggregate(total=Sum('total'))['total'] or 0
+        total_paye = commandes.filter(payee=True).aggregate(total=Sum('total'))['total'] or 0
+        total_impaye = total_commandes_livreur - total_paye
+        
+        # Création des données pour le QR code
+        qr_data = f"Facture Livreur: {livreur.nom}\n"
+        qr_data += f"Période: {selected_month_name} {year}\n"
+        qr_data += f"Total: {total_commandes_livreur} FCFA\n"
+        qr_data += f"Boulangerie Epi D'Or\nAngre Château\n01 03 41 96 90"
+
+        # Chemins des images
+        logo_path = get_image_path('logo')
+        signature_path = get_image_path('signature')
+
+        # Convertir les images en base64
+        logo_b64 = image_to_base64(logo_path)
+        signature_b64 = image_to_base64(signature_path)
+
+        # Création du contexte
+        context = {
+            'livreur': livreur,
+            'commandes': commandes,
+            'total_commandes_livreur': total_commandes_livreur,
+            'total_paye': total_paye,
+            'total_impaye': total_impaye,
+            'selected_month': month,
+            'selected_month_name': selected_month_name,
+            'selected_year': year,
+            'qr_data': qr_data,
+            'logo_b64': logo_b64,
+            'signature_b64': signature_b64,
+            'debug': settings.DEBUG,
+        }
+
+        # Génération du PDF
+        html = render_to_string('gestion/commandes/facture_livreur.html', context)
+        response = HttpResponse(content_type='application/pdf')
+        filename = f"facture_{livreur.nom}_{selected_month_name}_{year}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        # Création du PDF avec gestion des erreurs
+        pisa_status = pisa.CreatePDF(
+            html,
+            dest=response,
+            encoding='UTF-8',
+            link_callback=lambda uri, _: uri  # Important pour les images
         )
-    
-    # Calcul des totaux
-    total_commandes_livreur = commandes.aggregate(total=Sum('total'))['total'] or 0
-    total_paye = commandes.filter(payee=True).aggregate(total=Sum('total'))['total'] or 0
-    total_impaye = total_commandes_livreur - total_paye
-    
-    # Créer les données pour le QR code
-    qr_data = f"Facture Livreur: {livreur.nom}\n"
-    qr_data += f"Période: {selected_month_name} {year}\n"
-    qr_data += f"Total: {total_commandes_livreur} FCFA\n"
-    qr_data += f"Boulangerie Epi D'Or\nAngre Château\n01 03 41 96 90"
-    
-    # Chemins des images
-    logo_path = 'gestion/images/logo.png'  # Modifiez selon votre structure
-    signature_path = 'gestion/images/signature.png'
-    
-    context = {
-        'livreur': livreur,
-        'commandes': commandes,
-        'total_commandes_livreur': total_commandes_livreur,
-        'total_paye': total_paye,
-        'total_impaye': total_impaye,
-        'selected_month': month,
-        'selected_month_name': selected_month_name,
-        'selected_year': year,
-        'qr_data': qr_data,
-        'logo_url': request.build_absolute_uri(static(logo_path)),
-        'signature_url': request.build_absolute_uri(static(signature_path)),
-    }
-    
-    # Génération du PDF
-    html = render_to_string('gestion/commandes/facture_livreur.html', context)
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="facture_{livreur.nom}_{selected_month_name}_{year}.pdf"'
-    
-    pisa_status = pisa.CreatePDF(html, dest=response)
-    if pisa_status.err:
-        return HttpResponse('Erreur lors de la génération du PDF')
-    return response
+        
+        if pisa_status.err:
+            return HttpResponse('Erreur lors de la génération du PDF', status=500)
+        return response
+
+    except Exception as e:
+        return HttpResponse(f'Erreur lors de la génération de la facture: {str(e)}', status=500)
 
 class CommandeListView(ListView):
     model = CommandeLivreur

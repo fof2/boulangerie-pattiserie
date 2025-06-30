@@ -90,9 +90,11 @@
 </head>
 <body>
     <div class="header">
-        <img src="{% static 'gestion/images/logo.png' %}" alt="Logo Epi D'Or" class="logo">
+        {% if logo_b64 %}
+            <img src="{{ logo_b64 }}" alt="Logo" class="logo">
+        {% endif %}
         <h2>BOULANGERIE EPI D'OR</h2>
-        <h3>FACTURE DES COMMANDES - {{ selected_month_name|upper }} {{ selected_year }}</h3>
+        <h3>FACTURE DES COMMANDES {{ selected_month_name|upper }} {{ selected_year }}</h3>
         <p>Angre Château | Tél: 01 03 41 96 90 | SIRET: XXXXXXXXXXXXX</p>
     </div>
     
@@ -174,7 +176,10 @@
         
         <div class="signature">
             <p>Le Gérant,</p>
-            <img src="{% static 'gestion/images/signature.png' %}" alt="Signature" style="height: 50px;">
+            <!-- Dans la partie signature -->
+            {% if signature_b64 %}
+                <img src="{{ signature_b64 }}" alt="Signature">
+            {% endif %}
             <p>Boulangerie Epi D'Or</p>
             <p>Angre Château</p>
         </div>
