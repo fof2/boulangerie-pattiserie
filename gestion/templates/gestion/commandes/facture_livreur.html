@@ -5,71 +5,158 @@
     <meta charset="utf-8">
     <title>Facture {{ livreur.nom }} - {{ selected_month_name }} {{ selected_year }}</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 12px; }
-        .header { text-align: center; margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
-        .info { margin-bottom: 15px; }
-        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th, td { border: 1px solid #ddd; padding: 5px; text-align: left; }
-        th { background-color: #f2f2f2; }
-        .total { font-weight: bold; }
-        .footer { margin-top: 30px; text-align: center; font-size: 0.8em; border-top: 1px solid #eee; padding-top: 10px; }
-        .statut-paye { color: green; }
-        .statut-impaye { color: orange; }
+        body { 
+            font-family: 'Arial', sans-serif; 
+            font-size: 12px; 
+            line-height: 1.5;
+            color: #333;
+        }
+        .header { 
+            text-align: center; 
+            margin-bottom: 20px; 
+            border-bottom: 2px solid #8B4513;
+            padding-bottom: 10px; 
+        }
+        .info { 
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-bottom: 20px; 
+        }
+        th, td { 
+            border: 1px solid #ddd; 
+            padding: 8px; 
+            text-align: left; 
+        }
+        th { 
+            background-color: #8B4513; 
+            color: white;
+            font-weight: bold;
+        }
+        .total { 
+            font-weight: bold; 
+            background-color: #f5f5f5;
+        }
+        .footer { 
+            margin-top: 30px; 
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            border-top: 2px solid #8B4513;
+            padding-top: 20px; 
+        }
+        .statut-paye { 
+            color: green;
+            font-weight: bold;
+        }
+        .statut-impaye { 
+            color: #FFD700;
+            font-weight: bold;
+        }
+        .signature {
+            text-align: center;
+            margin-top: 40px;
+        }
+        .qr-code {
+            width: 120px;
+            height: 120px;
+            border: 1px solid #ddd;
+            padding: 5px;
+            background: white;
+        }
+        .company-info {
+            text-align: right;
+        }
+        .logo {
+            height: 80px;
+            margin-bottom: 10px;
+        }
+        h2, h3 {
+            color: #8B4513;
+            margin: 5px 0;
+        }
+        .bordered-box {
+            border: 1px solid #8B4513;
+            padding: 10px;
+            margin-top: 10px;
+            background-color: #FFF8E1;
+        }
     </style>
 </head>
 <body>
     <div class="header">
-        <h2>Boulangerie du Quartier</h2>
-        <h3>Facture des commandes - {{ selected_month_name }} {{ selected_year }}</h3>
-        <p>Tél: 01 03 41 96 90</p>
+        <img src="{% static 'gestion/images/logo.png' %}" alt="Logo Epi D'Or" class="logo">
+        <h2>BOULANGERIE EPI D'OR</h2>
+        <h3>FACTURE DES COMMANDES - {{ selected_month_name|upper }} {{ selected_year }}</h3>
+        <p>Angre Château | Tél: 01 03 41 96 90 | SIRET: XXXXXXXXXXXXX</p>
     </div>
     
     <div class="info">
-        <p><strong>Livreur:</strong> {{ livreur.nom }} {{ livreur.prenom }}</p>
-        <p><strong>Période:</strong> {{ selected_month_name }} {{ selected_year }}</p>
-        <p><strong>Nombre de commandes:</strong> {{ commandes.count }}</p>
+        <div class="bordered-box">
+            <p><strong>LIVREUR:</strong><br>
+            {{ livreur.nom }} {{ livreur.prenom }}<br>
+            {{ livreur.adresse }}<br>
+            Tél: {{ livreur.telephone }}</p>
+        </div>
+        
+        <div class="bordered-box">
+            <p><strong>FACTURE N°:</strong> FAC-{{ selected_year }}{{ selected_month|stringformat:"02d" }}-{{ livreur.id }}</p>
+            <p><strong>DATE:</strong> {% now "d/m/Y" %}</p>
+            <p><strong>PÉRIODE:</strong> 
+                {% if selected_month %}
+                    {{ selected_month_name }} {{ selected_year }}
+                {% else %}
+                    Tous les mois {{ selected_year }}
+                {% endif %}
+            </p>
+        </div>
     </div>
     
     <table>
         <thead>
             <tr>
-                <th>N°</th>
+                <th>N° Commande</th>
                 <th>Date</th>
-                <th>Produits</th>
-                <th>Total</th>
+                <th>Détail Produits</th>
+                <th>Montant (FCFA)</th>
                 <th>Statut</th>
             </tr>
         </thead>
         <tbody>
             {% for commande in commandes %}
             <tr>
-                <td>{{ commande.id }}</td>
+                <td>CMD-{{ commande.id|stringformat:"04d" }}</td>
                 <td>{{ commande.date|date:"d/m/Y" }}</td>
                 <td>
                     {% for ligne in commande.lignes.all %}
-                    {{ ligne.produit.nom }} ({{ ligne.quantite }} × {{ ligne.produit.prix_livreur }} FCFA)<br>
+                    • {{ ligne.produit.nom }} ({{ ligne.quantite }} × {{ ligne.produit.prix_livreur|floatformat:2 }} FCFA)<br>
                     {% endfor %}
                 </td>
-                <td>{{ commande.total|floatformat:2 }} FCFA</td>
+                <td>{{ commande.total|floatformat:2 }}</td>
                 <td class="{% if commande.payee %}statut-paye{% else %}statut-impaye{% endif %}">
-                    {% if commande.payee %}Payée{% else %}Impayée{% endif %}
+                    {% if commande.payee %}PAYÉ{% else %}EN ATTENTE{% endif %}
                 </td>
             </tr>
             {% endfor %}
         </tbody>
         <tfoot>
             <tr class="total">
-                <td colspan="3">Total Général</td>
+                <td colspan="3" style="text-align: right;">TOTAL COMMANDES</td>
                 <td>{{ total_commandes_livreur|floatformat:2 }} FCFA</td>
                 <td></td>
             </tr>
             <tr class="total">
-                <td colspan="3">Total Payé</td>
+                <td colspan="3" style="text-align: right;">TOTAL PAYÉ</td>
                 <td>{{ total_paye|floatformat:2 }} FCFA</td>
                 <td></td>
             </tr>
             <tr class="total">
-                <td colspan="3">Total Impayé</td>
+                <td colspan="3" style="text-align: right;">TOTAL À PAYER</td>
                 <td>{{ total_impaye|floatformat:2 }} FCFA</td>
                 <td></td>
             </tr>
@@ -77,8 +164,29 @@
     </table>
     
     <div class="footer">
-        <p>Merci pour votre confiance !</p>
-        <p>Facture générée le {% now "d/m/Y H:i" %}</p>
+        <div>
+            <div class="qr-code">
+                <!-- QR Code généré dynamiquement -->
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=120x120&data={{ qr_data|urlencode }}" alt="QR Code Facture">
+            </div>
+            <p>Scannez pour vérifier la facture</p>
+        </div>
+        
+        <div class="signature">
+            <p>Le Gérant,</p>
+            <img src="{% static 'gestion/images/signature.png' %}" alt="Signature" style="height: 50px;">
+            <p>Boulangerie Epi D'Or</p>
+            <p>Angre Château</p>
+        </div>
+        
+        <div class="company-info">
+            <p><strong>BOULANGERIE EPI D'OR</strong></p>
+            <p>12 Rue du Moulin, Angre Château</p>
+            <p>Tél: 01 03 41 96 90</p>
+            <p>Email: contact@epidor-angre.com</p>
+            <p>SIRET: XXXXXXXXXXXXX</p>
+            <p>Facture générée le {% now "d/m/Y à H:i" %}</p>
+        </div>
     </div>
 </body>
 </html>

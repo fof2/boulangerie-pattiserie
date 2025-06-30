@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView
 from django.http import HttpResponse
+from django.templatetags.static import static
 from django.template.loader import render_to_string, get_template
 from io import BytesIO
 from django.http import JsonResponse
@@ -141,14 +142,28 @@ def generer_facture_livreur(request, livreur_id):
     total_paye = commandes.filter(payee=True).aggregate(total=Sum('total'))['total'] or 0
     total_impaye = total_commandes_livreur - total_paye
     
+    # Créer les données pour le QR code
+    qr_data = f"Facture Livreur: {livreur.nom}\n"
+    qr_data += f"Période: {selected_month_name} {year}\n"
+    qr_data += f"Total: {total_commandes_livreur} FCFA\n"
+    qr_data += f"Boulangerie Epi D'Or\nAngre Château\n01 03 41 96 90"
+    
+    # Chemins des images
+    logo_path = 'gestion/images/logo.png'  # Modifiez selon votre structure
+    signature_path = 'gestion/images/signature.png'
+    
     context = {
         'livreur': livreur,
         'commandes': commandes,
         'total_commandes_livreur': total_commandes_livreur,
         'total_paye': total_paye,
         'total_impaye': total_impaye,
+        'selected_month': month,
         'selected_month_name': selected_month_name,
         'selected_year': year,
+        'qr_data': qr_data,
+        'logo_url': request.build_absolute_uri(static(logo_path)),
+        'signature_url': request.build_absolute_uri(static(signature_path)),
     }
     
     # Génération du PDF

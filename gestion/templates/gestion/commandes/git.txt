@@ -9,3 +9,28 @@ git status
 
 # Faites le premier commit
 git commit -m "Initial commit - Projet Boulangerie-Pâtisserie"
+# git remote add origin https://github.com/fof2/boulangerie-pattiserie.git
+
+# Pour la première fois, vous devrez spécifier la branche principale
+git branch -M main
+
+# Poussez le code
+git push -u origin main
+
+
+
+
+
+
+# Ajoutez les modifications
+git add .
+
+# Faites un commit
+git commit -m "Description des modifications"
+
+# Poussez vers GitHub
+git push
+
+git add .
+git commit -m "Description des modifications"
+git push
