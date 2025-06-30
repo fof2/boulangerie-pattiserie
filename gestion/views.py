@@ -73,12 +73,28 @@ def custom_logout(request):
 
 @login_required
 def mon_profil(request):
-    user = request.user
-    context = {
-        'user': user,
-        'title': 'Mon Profil'
-    }
-    return render(request, 'gestion/mon_profil.html', context)
+    if request.method == 'POST':
+        user = request.user
+        # Récupération des données du formulaire
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+        
+        # Validation des champs obligatoires
+        if not all([username, email, first_name, last_name]):
+            messages.error(request, "Tous les champs sont obligatoires")
+        else:
+            # Mise à jour des informations
+            user.username = username
+            user.email = email
+            user.first_name = first_name
+            user.last_name = last_name
+            user.save()
+            messages.success(request, "Profil mis à jour avec succès!")
+            return redirect('mon_profil')
+    
+    return render(request, 'gestion/mon_profil.html', {'user': request.user})
 
 @login_required
 def parametres(request):

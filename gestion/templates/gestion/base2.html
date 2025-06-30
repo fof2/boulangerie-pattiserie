@@ -177,8 +177,8 @@
                                     <i class="fas fa-user-circle me-2"></i>{{ user.username }}
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end">
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user me-2"></i>Profil</a></li>
-                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'mon_profil' %}"><i class="fas fa-user me-2"></i>Profil</a></li>
+                                    <li><a class="dropdown-item" href="{% url 'parametres' %}"><i class="fas fa-cog me-2"></i>Paramètres</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form method="post" action="{% url 'logout' %}">
@@ -211,7 +211,7 @@
                         <i class="fas fa-bars me-2"></i>Menu Principal
                     </div>
                     <div class="list-group list-group-flush">
-                        <a href="#" class="list-group-item list-group-item-action active">
+                        <a href="{% url 'accueil' %}" class="list-group-item list-group-item-action ">
                             <i class="fas fa-chart-line"></i> Tableau de bord
                         </a>
                         <a href="{% url 'liste_ouvriers' %}" class="list-group-item list-group-item-action">
@@ -254,7 +254,7 @@
                     <address>
                         12 Rue du Moulin<br>
                         ANGRE CHATEAU<br>
-                        <i class="fas fa-phone me-2"></i>03 00 00 00 00
+                        <i class="fas fa-phone me-2"></i>0103419690
                     </address>
                 </div>
                 <div class="col-md-4 mb-4 mb-md-0">

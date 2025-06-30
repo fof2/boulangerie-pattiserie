@@ -3,88 +3,183 @@
 {% block content %}
 <div class="container animate__animated animate__fadeIn">
     <div class="text-center mb-5">
-        <p class="lead text-muted">Gestion complète de votre boulangerie</p>
-        <div class="divider-gradient mx-auto"></div>
+        <h2 class="display-5 font-weight-bold text-primary">Tableau de Bord Boulangerie</h2>
+        <p class="lead text-muted">Gestion complète de votre entreprise artisanale</p>
+        <div class="divider-gradient mx-auto" style="width: 150px; height: 3px;"></div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card border-0 shadow-lg">
-                <div class="card-header bg-gradient-primary text-white rounded-top">
-                    <h3 class="card-title mb-0 py-3">
-                        <i class="fas fa-th-large mr-2"></i> Menu Principal
-                    </h3>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush rounded-bottom">
-                        <a href="{% url 'liste_ouvriers' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 menu-item">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-primary-light mr-3">
-                                    <i class="fas fa-users text-primary"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Gestion des Ouvriers</h5>
-                                    <small class="text-muted">Gérez votre personnel</small>
-                                </div>
-                            </div>
-                            <i class="fas fa-chevron-right text-primary"></i>
-                        </a>
-                        
-                        <a href="{% url 'liste_postes' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 menu-item">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-warning-light mr-3">
-                                    <i class="fas fa-briefcase text-warning"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Gestion des Postes</h5>
-                                    <small class="text-muted">Organisez les rôles</small>
-                                </div>
-                            </div>
-                            <i class="fas fa-chevron-right text-warning"></i>
-                        </a>
-                        
-                        <a href="{% url 'livreur_liste' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 menu-item">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-success-light mr-3">
-                                    <i class="fas fa-truck text-success"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Gestion des Livreurs</h5>
-                                    <small class="text-muted">Suivez les livraisons</small>
-                                </div>
-                            </div>
-                            <i class="fas fa-chevron-right text-success"></i>
-                        </a>
-                        
-                        <a href="{% url 'produit_liste' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 menu-item">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-info-light mr-3">
-                                    <i class="fas fa-bread-slice text-info"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Gestion des Produits</h5>
-                                    <small class="text-muted">Contrôlez votre stock</small>
-                                </div>
-                            </div>
-                            <i class="fas fa-chevron-right text-info"></i>
-                        </a>
-                        
-                        <a href="{% url 'commande_liste' %}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center py-3 menu-item">
-                            <div class="d-flex align-items-center">
-                                <div class="icon-circle bg-danger-light mr-3">
-                                    <i class="fas fa-clipboard-list text-danger"></i>
-                                </div>
-                                <div>
-                                    <h5 class="mb-0">Gestion des Commandes</h5>
-                                    <small class="text-muted">Suivez les ventes</small>
-                                </div>
-                            </div>
-                            <i class="fas fa-chevron-right text-danger"></i>
-                        </a>
+    <div class="row g-4">
+        <!-- Carte Gestion des Ouvriers -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 hover-scale animate__animated animate__fadeInUp">
+                <div class="card-header bg-gradient-primary text-white rounded-top-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-white mr-3">
+                            <i class="fas fa-users text-primary"></i>
+                        </div>
+                        <h5 class="mb-0">Gestion des Ouvriers</h5>
                     </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">Gérez efficacement votre personnel boulanger avec toutes les informations nécessaires.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{% url 'liste_ouvriers' %}" class="btn btn-primary btn-sm stretched-link">
+                        Accéder <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Gestion des Postes -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 hover-scale animate__animated animate__fadeInUp animate__delay-1">
+                <div class="card-header bg-gradient-warning text-white rounded-top-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-white mr-3">
+                            <i class="fas fa-briefcase text-warning"></i>
+                        </div>
+                        <h5 class="mb-0">Gestion des Postes</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">Organisez et définissez les rôles et responsabilités de chaque membre de votre équipe.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{% url 'liste_postes' %}" class="btn btn-warning btn-sm stretched-link">
+                        Accéder <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Gestion des Livreurs -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 hover-scale animate__animated animate__fadeInUp animate__delay-2">
+                <div class="card-header bg-gradient-success text-white rounded-top-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-white mr-3">
+                            <i class="fas fa-truck text-success"></i>
+                        </div>
+                        <h5 class="mb-0">Gestion des Livreurs</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">Suivez et optimisez vos livraisons pour une meilleure satisfaction client.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{% url 'livreur_liste' %}" class="btn btn-success btn-sm stretched-link">
+                        Accéder <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Gestion des Produits -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 hover-scale animate__animated animate__fadeInUp">
+                <div class="card-header bg-gradient-info text-white rounded-top-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-white mr-3">
+                            <i class="fas fa-bread-slice text-info"></i>
+                        </div>
+                        <h5 class="mb-0">Gestion des Produits</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">Contrôlez votre stock de produits frais et vos recettes artisanales.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{% url 'produit_liste' %}" class="btn btn-info btn-sm stretched-link">
+                        Accéder <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte Gestion des Commandes -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 hover-scale animate__animated animate__fadeInUp animate__delay-1">
+                <div class="card-header bg-gradient-danger text-white rounded-top-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-white mr-3">
+                            <i class="fas fa-clipboard-list text-danger"></i>
+                        </div>
+                        <h5 class="mb-0">Gestion des Commandes</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">Suivez et analysez vos ventes pour une meilleure gestion commerciale.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="{% url 'commande_liste' %}" class="btn btn-danger btn-sm stretched-link">
+                        Accéder <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Carte supplémentaire (statistiques par exemple) -->
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 hover-scale animate__animated animate__fadeInUp animate__delay-2">
+                <div class="card-header bg-gradient-secondary text-white rounded-top-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-circle bg-white mr-3">
+                            <i class="fas fa-chart-line text-secondary"></i>
+                        </div>
+                        <h5 class="mb-0">Tableau de Bord</h5>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="card-text text-muted">Visualisez les indicateurs clés de votre boulangerie en temps réel.</p>
+                </div>
+                <div class="card-footer bg-transparent border-0">
+                    <a href="#" class="btn btn-secondary btn-sm stretched-link">
+                        Accéder <i class="fas fa-arrow-right ms-2"></i>
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<style>
+    .hover-scale {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .hover-scale:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    }
+    .icon-circle {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+    }
+    .bg-gradient-success {
+        background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+    }
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+    }
+    .bg-gradient-danger {
+        background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+    }
+    .bg-gradient-secondary {
+        background: linear-gradient(135deg, #858796 0%, #60616f 100%);
+    }
+    .rounded-top-3 {
+        border-top-left-radius: 0.5rem !important;
+        border-top-right-radius: 0.5rem !important;
+    }
+</style>
 {% endblock %}
