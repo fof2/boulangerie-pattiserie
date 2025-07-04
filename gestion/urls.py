@@ -15,9 +15,11 @@ from .views import (
     DetailPosteView,
     AjouterPosteView,
     ModifierPosteView,
+    stats_data,
     SupprimerPosteView,
-    affecter_ouvrier_poste,  # Ajouté ici
+    affecter_ouvrier_poste,  
     mon_profil,
+    statistiques,
     parametres,
 )
 
@@ -25,6 +27,8 @@ urlpatterns = [
     # Authentification
     path('login/', custom_login, name='login'),
     path('logout/', custom_logout, name='logout'),
+    path('statistiques/', statistiques, name='statistiques'),
+    path('stats-data/', stats_data, name='stats_data'),
     
     # Page d'accueil
     path('', TemplateView.as_view(template_name='gestion/accueil.html'), name='accueil'),

@@ -164,3 +164,38 @@ class PaiementSalaire(models.Model):
     class Meta:
         verbose_name = "Paiement de salaire"
         verbose_name_plural = "Paiements de salaires"
+
+
+
+# models.py
+class Presence(models.Model):
+    ouvrier = models.ForeignKey(Ouvrier, on_delete=models.CASCADE, related_name='presences')
+    date = models.DateField(default=timezone.now)
+    present = models.BooleanField(default=False)
+    heures_travaillees = models.DecimalField(max_digits=4, decimal_places=2, default=8.0)
+    poste = models.ForeignKey(Poste, on_delete=models.SET_NULL, null=True, blank=True)
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ('ouvrier', 'date')
+        ordering = ['-date', 'ouvrier__nom']
+        verbose_name = "Présence"
+        verbose_name_plural = "Présences"
+
+    def __str__(self):
+        status = "Présent" if self.present else "Absent"
+        return f"{self.ouvrier.nom} - {self.date} - {status} - {self.heures_travaillees}h"
+
+    @classmethod
+    def get_stats_period(cls, start_date, end_date):
+        return cls.objects.filter(
+            date__gte=start_date,
+            date__lte=end_date
+        ).values('ouvrier').annotate(
+            jours_presents=Count('id', filter=Q(present=True)),
+            heures_total=Sum('heures_travaillees', filter=Q(present=True)),
+            taux_presence=ExpressionWrapper(
+                Count('id', filter=Q(present=True)) * 100.0 / Count('id'),
+                output_field=FloatField()
+            )
+        ).order_by('-jours_presents')
