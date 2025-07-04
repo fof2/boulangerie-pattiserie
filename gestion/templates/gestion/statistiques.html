@@ -1,0 +1,266 @@
+{% extends 'gestion/base2.html' %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4"><i class="fas fa-chart-pie mr-2 text-primary"></i>Tableau de Bord Statistique</h1>
+    
+    <!-- Filtres principaux -->
+    <div class="card mb-4 border-0 shadow">
+        <div class="card-header bg-gradient-primary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-sliders-h mr-2"></i>
+                    <span class="h5">Filtres Principaux</span>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-3">
+                    <label for="period" class="form-label">Période</label>
+                    <select name="period" id="period" class="form-select">
+                        <option value="day" {% if period == 'day' %}selected{% endif %}>Journalier</option>
+                        <option value="month" {% if period == 'month' %}selected{% endif %}>Mensuel</option>
+                        <option value="year" {% if period == 'year' %}selected{% endif %}>Annuel</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="date_from" class="form-label">Date de début</label>
+                    <input type="date" name="date_from" id="date_from" class="form-control" 
+                           value="{{ date_from|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label for="date_to" class="form-label">Date de fin</label>
+                    <input type="date" name="date_to" id="date_to" class="form-control" 
+                           value="{{ date_to|date:'Y-m-d' }}" required>
+                </div>
+                <div class="col-md-3 d-grid">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-filter mr-1"></i>Appliquer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tableau des Livreurs -->
+    <div class="card mb-4 border-0 shadow">
+        <div class="card-header bg-gradient-info text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-motorcycle mr-2"></i>
+                    <span class="h5">Performance des Livreurs</span>
+                </div>
+                <div class="w-50">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                        <input type="text" id="searchLivreurs" class="form-control" 
+                               placeholder="Rechercher par nom ou numéro...">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm" id="tableLivreurs">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N°</th>
+                            <th>Livreur</th>
+                            <th>Commandes</th>
+                            <th>%</th>
+                            <th>Payées</th>
+                            <th>%</th>
+                            <th>Total</th>
+                            <th>% CA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for livreur in livreurs_stats|dictsort:"nom" %}
+                        <tr>
+                            <td>{{ livreur.id|default:"-" }}</td>
+                            <td>{{ livreur.nom|default:"-" }}</td>
+                            <td>{{ livreur.nb_commandes }}</td>
+                            <td>{{ livreur.nb_commandes|percentof:total_commandes }}%</td>
+                            <td>{{ livreur.commandes_payees }}</td>
+                            <td>{{ livreur.commandes_payees|percentof:livreur.nb_commandes|default:"0" }}%</td>
+                            <td>{{ livreur.total_ventes|floatformat:0 }} FCFA</td>
+                            <td class="fw-bold {% if livreur.total_ventes|percentof:total_ca > 20 %}text-success{% elif livreur.total_ventes|percentof:total_ca < 5 %}text-muted{% endif %}">
+                                {{ livreur.total_ventes|percentof:total_ca|default:"0" }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des Produits -->
+    <div class="card mb-4 border-0 shadow">
+        <div class="card-header bg-gradient-warning text-dark">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-boxes mr-2"></i>
+                    <span class="h5">Ventes par Produit</span>
+                </div>
+                <div class="w-50">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                        <input type="text" id="searchProduits" class="form-control" 
+                               placeholder="Rechercher un produit...">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm" id="tableProduits">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N°</th>
+                            <th>Produit</th>
+                            <th>Quantité</th>
+                            <th>%</th>
+                            <th>Chiffre d'affaires</th>
+                            <th>% CA</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for produit in produits_stats|dictsort:"nom" %}
+                        <tr>
+                            <td>{{ produit.id|default:"-" }}</td>
+                            <td>{{ produit.nom|default:"-" }}</td>
+                            <td>{{ produit.quantite_vendue|default:0 }}</td>
+                            <td>{{ produit.quantite_vendue|percentof:total_quantite }}%</td>
+                            <td>{{ produit.chiffre_affaire|default:0|floatformat:0 }} FCFA</td>
+                            <td class="fw-bold {% if produit.chiffre_affaire|percentof:total_ca_produits > 20 %}text-success{% elif produit.chiffre_affaire|percentof:total_ca_produits < 5 %}text-muted{% endif %}">
+                                {{ produit.chiffre_affaire|percentof:total_ca_produits|default:"0" }}%
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des Ouvriers -->
+    <div class="card mb-4 border-0 shadow">
+        <div class="card-header bg-gradient-secondary text-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="fas fa-hard-hat mr-2"></i>
+                    <span class="h5">Activité des Ouvriers</span>
+                </div>
+                <div class="w-50">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                        <input type="text" id="searchOuvriers" class="form-control" 
+                               placeholder="Rechercher un ouvrier...">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm" id="tableOuvriers">
+                    <thead class="table-light">
+                        <tr>
+                            <th>N°</th>
+                            <th>Ouvrier</th>
+                            <th>Jours travaillés</th>
+                            <th>%</th>
+                            <th>Postes occupés</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ouvrier in ouvriers_stats|dictsort:"nom" %}
+                        <tr>
+                            <td>{{ ouvrier.id|default:"-" }}</td>
+                            <td>{{ ouvrier.nom|default:"-" }}</td>
+                            <td>{{ ouvrier.jours_travailles }}</td>
+                            <td>{{ ouvrier.jours_travailles|percentof:total_jours|default:"0" }}%</td>
+                            <td>{{ ouvrier.postes_occupes }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // Initialisation des tables avec tri alphabétique par défaut
+    $('#tableLivreurs').DataTable({
+        order: [[1, 'asc']], // Tri par nom (colonne 1)
+        pageLength: 10,
+        language: {
+            search: "_INPUT_",
+            searchPlaceholder: "Rechercher...",
+            zeroRecords: "Aucun résultat trouvé",
+            info: "Affichage de _START_ à _END_ sur _TOTAL_",
+            infoEmpty: "Aucun élément disponible",
+            infoFiltered: "(filtrés depuis _MAX_ éléments)",
+            paginate: {
+                first: "Premier",
+                last: "Dernier",
+                next: "Suivant",
+                previous: "Précédent"
+            }
+        }
+    });
+
+    $('#tableProduits').DataTable({
+        order: [[1, 'asc']], // Tri par nom (colonne 1)
+        pageLength: 10
+        // [mêmes options que ci-dessus]
+    });
+
+    $('#tableOuvriers').DataTable({
+        order: [[1, 'asc']], // Tri par nom (colonne 1)
+        pageLength: 10
+        // [mêmes options que ci-dessus]
+    });
+
+    // Configuration des recherches
+    $('#searchLivreurs').keyup(function(){
+        $('#tableLivreurs').DataTable().search($(this).val()).draw();
+    });
+
+    $('#searchProduits').keyup(function(){
+        $('#tableProduits').DataTable().search($(this).val()).draw();
+    });
+
+    $('#searchOuvriers').keyup(function(){
+        $('#tableOuvriers').DataTable().search($(this).val()).draw();
+    });
+});
+</script>
+
+<style>
+    .card-header {
+        border-radius: 0.375rem 0.375rem 0 0 !important;
+    }
+    .bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+    }
+    .bg-gradient-info {
+        background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+    }
+    .bg-gradient-warning {
+        background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+    }
+    .bg-gradient-secondary {
+        background: linear-gradient(135deg, #858796 0%, #60616f 100%);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0,0,0,0.04);
+    }
+</style>
+{% endblock %}

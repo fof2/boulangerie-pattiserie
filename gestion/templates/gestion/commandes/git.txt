@@ -32,5 +32,6 @@ git commit -m "Description des modifications"
 git push
 
 git add .
-git commit -m "Description la toute derniere modif  modifications"
+
+git commit -m "04 07 2025 A 16H40 la toute derniere modif  modifications"
 git push

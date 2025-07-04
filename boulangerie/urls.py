@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.contrib.auth import views as auth_views
-from gestion import urlslivreurs, urlsproduits, urlscommandes
+from gestion import urlslivreurs, urlsproduits, urlscommandes, urlspresence
 
 urlpatterns = [
     # Page de connexion comme page d'accueil principale
@@ -18,4 +18,5 @@ urlpatterns = [
     path('livreurs/', include(urlslivreurs.urlpatterns)), 
     path('produits/', include(urlsproduits.urlpatterns)),
     path('commandes/', include(urlscommandes.urlpatterns)),
+    path('presence/', include(urlspresence.urlpatterns)),
 ]

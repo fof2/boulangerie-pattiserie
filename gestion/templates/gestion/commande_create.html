@@ -1,0 +1,191 @@
+{% extends 'gestion/base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4">Statistiques</h1>
+    
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter mr-1"></i>
+            Filtres
+        </div>
+        <div class="card-body">
+            <form method="get" class="form-inline">
+                <!-- Vos filtres existants -->
+            </form>
+        </div>
+    </div>
+    
+    <!-- Graphiques -->
+    <div class="row mb-4">
+        <!-- Diagramme produits -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie mr-1"></i>
+                    Répartition des ventes par produit
+                </div>
+                <div class="card-body">
+                    <canvas id="produitsChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Diagramme livreurs -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie mr-1"></i>
+                    Répartition des commandes par livreur
+                </div>
+                <div class="card-body">
+                    <canvas id="livreursChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Commandes par période -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar mr-1"></i>
+                    Commandes par période
+                </div>
+                <div class="card-body">
+                    <canvas id="commandesChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chiffre d'affaires -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line mr-1"></i>
+                    Chiffre d'affaires par période
+                </div>
+                <div class="card-body">
+                    <canvas id="caChart" height="400"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vos tableaux existants -->
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Fonction pour initialiser les graphiques
+function initCharts() {
+    // 1. Diagramme des produits
+    const produitsData = JSON.parse('{{ produits_pie_data|escapejs }}');
+    new Chart(document.getElementById('produitsChart'), {
+        type: 'pie',
+        data: {
+            labels: produitsData.labels,
+            datasets: [{
+                data: produitsData.data,
+                backgroundColor: produitsData.colors,
+                borderWidth: 1
+            }]
+        },
+        options: getPieOptions('unités')
+    });
+
+    // 2. Diagramme des livreurs
+    const livreursData = JSON.parse('{{ livreurs_pie_data|escapejs }}');
+    new Chart(document.getElementById('livreursChart'), {
+        type: 'doughnut',
+        data: {
+            labels: livreursData.labels,
+            datasets: [{
+                data: livreursData.data,
+                backgroundColor: livreursData.colors,
+                borderWidth: 1
+            }]
+        },
+        options: getPieOptions('commandes')
+    });
+
+    // 3. Commandes par période
+    new Chart(document.getElementById('commandesChart'), {
+        type: 'bar',
+        data: {
+            labels: JSON.parse('{{ period_labels|escapejs }}'),
+            datasets: [{
+                label: 'Nombre de commandes',
+                data: JSON.parse('{{ commandes_data|escapejs }}'),
+                backgroundColor: 'rgba(54, 162, 235, 0.7)'
+            }]
+        },
+        options: getBarOptions()
+    });
+
+    // 4. Chiffre d'affaires
+    new Chart(document.getElementById('caChart'), {
+        type: 'line',
+        data: {
+            labels: JSON.parse('{{ period_labels|escapejs }}'),
+            datasets: [{
+                label: 'Chiffre d\'affaires (FCFA)',
+                data: JSON.parse('{{ ca_data|escapejs }}'),
+                borderColor: 'rgba(75, 192, 192, 1)',
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                fill: true
+            }]
+        },
+        options: getLineOptions()
+    });
+}
+
+// Options communes
+function getPieOptions(unit) {
+    return {
+        responsive: true,
+        plugins: {
+            legend: { position: 'right' },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                        const percentage = Math.round((context.raw / total) * 100);
+                        return `${context.label}: ${context.raw} ${unit} (${percentage}%)`;
+                    }
+                }
+            }
+        }
+    };
+}
+
+function getBarOptions() {
+    return {
+        responsive: true,
+        scales: { y: { beginAtZero: true } }
+    };
+}
+
+function getLineOptions() {
+    return {
+        responsive: true,
+        scales: { 
+            y: { 
+                beginAtZero: true,
+                ticks: {
+                    callback: function(value) {
+                        return value.toLocaleString() + ' FCFA';
+                    }
+                }
+            }
+        }
+    };
+}
+
+// Initialisation lorsque le DOM est chargé
+document.addEventListener('DOMContentLoaded', initCharts);
+</script>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends 'gestion/base2.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container-fluid">
+    <h1 class="mt-4">Tableau de Bord Stratégique</h1>
+    
+    <!-- Filtres -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="form-inline">
+                <div class="form-group mr-3">
+                    <label>Période :</label>
+                    <input type="date" name="date_from" class="form-control ml-2" value="{{ date_from|date:'Y-m-d' }}">
+                    <span class="mx-2">à</span>
+                    <input type="date" name="date_to" class="form-control" value="{{ date_to|date:'Y-m-d' }}">
+                </div>
+                <button type="submit" class="btn btn-primary">Actualiser</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3 Colonnes -->
+    <div class="row">
+        <!-- Top Produits -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-star"></i> Produits Stars
+                </div>
+                <div class="card-body">
+                    <canvas id="topProduitsChart"></canvas>
+                </div>
+                <div class="card-footer">
+                    <small>À féliciter : {{ top_produits.0.nom }} ({{ top_produits.0.ventes }} ventes)</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Livreurs -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-motorcycle"></i> Meilleurs Livreurs
+                </div>
+                <div class="card-body">
+                    <canvas id="topLivreursChart"></canvas>
+                </div>
+                <div class="card-footer">
+                    <small>Performance exceptionnelle : {{ top_livreurs.0.nom }}</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Répartition CA -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header bg-warning">
+                    <i class="fas fa-chart-pie"></i> Répartition du CA
+                </div>
+                <div class="card-body">
+                    <canvas id="caCategoriesChart"></canvas>
+                </div>
+                <div class="card-footer">
+                    <small>Catégorie dominante : {{ ca_categories.0.nom }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="card mb-4">
+        <div class="card-header bg-primary text-white">
+            <i class="fas fa-lightbulb"></i> Recommandations
+        </div>
+        <div class="card-body">
+            <ul class="list-group">
+                <li class="list-group-item">
+                    <i class="fas fa-thumbs-up text-success"></i> 
+                    Augmenter la production de <strong>{{ top_produits.0.nom }}</strong>
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-award text-info"></i> 
+                    Récompenser <strong>{{ top_livreurs.0.nom }}</strong> ({{ top_livreurs.0.chiffre_affaire|floatformat:2 }} FCFA)
+                </li>
+                <li class="list-group-item">
+                    <i class="fas fa-chart-line text-warning"></i> 
+                    Développer la catégorie <strong>{{ ca_categories.0.nom }}</strong>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+// Produits Stars (Bar Chart)
+new Chart(document.getElementById('topProduitsChart'), {
+    type: 'bar',
+    data: {
+        labels: [{% for p in top_produits %}"{{ p.nom|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            label: 'Ventes',
+            data: [{% for p in top_produits %}{{ p.ventes }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                'rgba(75, 192, 192, 0.6)',
+                'rgba(54, 162, 235, 0.6)',
+                'rgba(255, 206, 86, 0.6)',
+                'rgba(153, 102, 255, 0.6)',
+                'rgba(255, 159, 64, 0.6)'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Top 5 des Produits'
+            }
+        }
+    }
+});
+
+// Meilleurs Livreurs (Doughnut)
+new Chart(document.getElementById('topLivreursChart'), {
+    type: 'doughnut',
+    data: {
+        labels: [{% for l in top_livreurs %}"{{ l.nom|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for l in top_livreurs %}{{ l.chiffre_affaire }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                '#FF6384',
+                '#36A2EB',
+                '#FFCE56'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            title: {
+                display: true,
+                text: 'CA par Livreur'
+            }
+        }
+    }
+});
+
+// Répartition CA (Pie)
+new Chart(document.getElementById('caCategoriesChart'), {
+    type: 'pie',
+    data: {
+        labels: [{% for c in ca_categories %}"{{ c.nom|escapejs }}"{% if not forloop.last %},{% endif %}{% endfor %}],
+        datasets: [{
+            data: [{% for c in ca_categories %}{{ c.ca }}{% if not forloop.last %},{% endif %}{% endfor %}],
+            backgroundColor: [
+                '#4BC0C0',
+                '#9966FF',
+                '#FF9F40',
+                '#8AC24A',
+                '#FFCD56'
+            ]
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            title: {
+                display: true,
+                text: 'Répartition par Catégorie'
+            }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -437,3 +437,274 @@ class SupprimerPosteView(DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(request, "Poste supprimé avec succès!")
         return super().delete(request, *args, **kwargs)
+    
+from django.db.models.functions import Coalesce, TruncDay, TruncMonth, TruncYear
+from django.db.models import Sum, Count, F, Q, DecimalField, IntegerField
+from django.utils import timezone
+from datetime import datetime, timedelta
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+import json
+from decimal import Decimal
+from .models import Ouvrier, Poste, AffectationPoste, Livreur, Produit, CommandeLivreur, LigneCommande
+
+@login_required
+def statistiques(request):
+    # Paramètres de période
+    period = request.GET.get('period', 'day')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
+    # Période par défaut (30 derniers jours)
+    if not date_from or not date_to:
+        date_to = timezone.now().date()
+        date_from = date_to - timedelta(days=30)
+    else:
+        date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+        date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+    
+    # Fonction de troncature de date
+    def trunc_date(field):
+        if period == 'day': return TruncDay(field)
+        elif period == 'month': return TruncMonth(field)
+        return TruncYear(field)
+    
+    # Statistiques des commandes par période
+    commandes_period = CommandeLivreur.objects.filter(
+        date__date__gte=date_from,
+        date__date__lte=date_to
+    ).annotate(
+        period=trunc_date('date')
+    ).values('period').annotate(
+        count=Count('id', output_field=IntegerField()),
+        total=Sum('total', output_field=DecimalField(max_digits=10, decimal_places=2)),
+        payees=Count('id', filter=Q(payee=True), output_field=IntegerField())
+    ).order_by('period')
+
+    # Préparation des données pour les graphiques
+    period_labels = []
+    commandes_data = []
+    commandes_total = []
+    
+    if commandes_period:
+        period_labels = [item['period'].strftime('%d/%m/%Y' if period == 'day' else '%m/%Y' if period == 'month' else '%Y') 
+                        for item in commandes_period]
+        commandes_data = [item['count'] for item in commandes_period]
+        commandes_total = [float(item['total'] or 0) for item in commandes_period]
+    else:
+        # Valeurs par défaut si aucune donnée
+        period_labels = []
+        commandes_data = []
+        commandes_total = []
+    
+    # Statistiques des livreurs avec output_field explicite
+    livreurs_stats = Livreur.objects.annotate(
+        nb_commandes=Coalesce(
+            Count('commandelivreur', 
+                  filter=Q(commandelivreur__date__date__gte=date_from, 
+                           commandelivreur__date__date__lte=date_to),
+                  output_field=IntegerField()), 
+            0,
+            output_field=IntegerField()
+        ),
+        total_ventes=Coalesce(
+            Sum('commandelivreur__total', 
+                filter=Q(commandelivreur__date__date__gte=date_from, 
+                         commandelivreur__date__date__lte=date_to),
+                output_field=DecimalField(max_digits=10, decimal_places=2)), 
+            0,
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        ),
+        commandes_payees=Coalesce(
+            Count('commandelivreur', 
+                  filter=Q(commandelivreur__payee=True, 
+                           commandelivreur__date__date__gte=date_from, 
+                           commandelivreur__date__date__lte=date_to),
+                  output_field=IntegerField()), 
+            0,
+            output_field=IntegerField()
+        )
+    ).order_by('-total_ventes').values(
+        'id', 'nom', 'nb_commandes', 'total_ventes', 'commandes_payees'
+    )
+    
+    # Statistiques des produits avec output_field explicite
+    produits_stats = Produit.objects.annotate(
+        quantite_vendue=Coalesce(
+            Sum('lignecommande__quantite', 
+                filter=Q(lignecommande__commande__date__date__gte=date_from, 
+                         lignecommande__commande__date__date__lte=date_to),
+                output_field=IntegerField()), 
+            0,
+            output_field=IntegerField()
+        ),
+        chiffre_affaire=Coalesce(
+            Sum(F('lignecommande__quantite') * F('lignecommande__prix_unitaire'), 
+                filter=Q(lignecommande__commande__date__date__gte=date_from, 
+                         lignecommande__commande__date__date__lte=date_to),
+                output_field=DecimalField(max_digits=10, decimal_places=2)), 
+            0,
+            output_field=DecimalField(max_digits=10, decimal_places=2)
+        )
+    ).order_by('-chiffre_affaire').values(
+        'id', 'nom', 'quantite_vendue', 'chiffre_affaire'
+    )
+    
+    # Statistiques des ouvriers avec output_field explicite
+    ouvriers_stats = Ouvrier.objects.annotate(
+        jours_travailles=Coalesce(
+            Count('affectationposte', 
+                  filter=Q(affectationposte__date_debut__lte=date_to) & 
+                         (Q(affectationposte__date_fin__gte=date_from) | 
+                          Q(affectationposte__date_fin__isnull=True)),
+                  output_field=IntegerField()), 
+            0,
+            output_field=IntegerField()
+        ),
+        postes_occupes=Coalesce(
+            Count('affectationposte__poste', distinct=True,
+                  filter=Q(affectationposte__date_debut__lte=date_to) & 
+                         (Q(affectationposte__date_fin__gte=date_from) | 
+                          Q(affectationposte__date_fin__isnull=True)),
+                  output_field=IntegerField()), 
+            0,
+            output_field=IntegerField()
+        )
+    ).order_by('-jours_travailles').values(
+        'id', 'nom', 'jours_travailles', 'postes_occupes'
+    )
+    
+    context = {
+        'livreurs_stats': list(livreurs_stats),
+        'produits_stats': list(produits_stats),
+        'ouvriers_stats': list(ouvriers_stats),
+        'commandes_period': list(commandes_period),
+        'period_labels': json.dumps(period_labels),
+        'commandes_data': json.dumps(commandes_data),
+        'commandes_total': json.dumps(commandes_total),
+        'period': period,
+        'date_from': date_from.strftime('%Y-%m-%d'),
+        'date_to': date_to.strftime('%Y-%m-%d'),
+    }
+
+        # Calcul des totaux pour les pourcentages
+    total_commandes = CommandeLivreur.objects.filter(
+        date__date__gte=date_from,
+        date__date__lte=date_to
+    ).count()
+
+    total_ca = CommandeLivreur.objects.filter(
+        date__date__gte=date_from,
+        date__date__lte=date_to
+    ).aggregate(total=Sum('total'))['total'] or 0
+
+    total_quantite = LigneCommande.objects.filter(
+        commande__date__date__gte=date_from,
+        commande__date__date__lte=date_to
+    ).aggregate(total=Sum('quantite'))['total'] or 0
+
+    total_ca_produits = sum(p['chiffre_affaire'] for p in produits_stats)
+
+    total_jours = sum(o['jours_travailles'] for o in ouvriers_stats)
+
+    context.update({
+        'total_commandes': total_commandes,
+        'total_ca': total_ca,
+        'total_quantite': total_quantite,
+        'total_ca_produits': total_ca_produits,
+        'total_jours': total_jours,
+    })
+        # Calcul des totaux pour les pourcentages
+    total_commandes = CommandeLivreur.objects.filter(
+        date__date__gte=date_from,
+        date__date__lte=date_to
+    ).count()
+
+    total_ca = CommandeLivreur.objects.filter(
+        date__date__gte=date_from,
+        date__date__lte=date_to
+    ).aggregate(total=Sum('total'))['total'] or 0
+
+    total_quantite = LigneCommande.objects.filter(
+        commande__date__date__gte=date_from,
+        commande__date__date__lte=date_to
+    ).aggregate(total=Sum('quantite'))['total'] or 0
+
+    total_ca_produits = sum(p['chiffre_affaire'] for p in produits_stats)
+    total_jours = sum(o['jours_travailles'] for o in ouvriers_stats)
+    
+    # Ajout des totaux pour les commandes par période
+    total_commandes_period = sum(c['count'] for c in commandes_period)
+    total_commandes_amount = sum(c['total'] or 0 for c in commandes_period)
+    total_payees_period = sum(c['payees'] for c in commandes_period)
+    
+    # Calcul du total des payées pour les livreurs
+    total_payees = sum(l['commandes_payees'] for l in livreurs_stats)
+    
+    # Calcul du total des postes occupés
+    total_postes = sum(o['postes_occupes'] for o in ouvriers_stats)
+
+    context = {
+        'livreurs_stats': list(livreurs_stats),
+        'produits_stats': list(produits_stats),
+        'ouvriers_stats': list(ouvriers_stats),
+        'commandes_period': list(commandes_period),
+        'period_labels': json.dumps(period_labels),
+        'commandes_data': json.dumps(commandes_data),
+        'commandes_total': json.dumps(commandes_total),
+        'period': period,
+        'date_from': date_from.strftime('%Y-%m-%d'),
+        'date_to': date_to.strftime('%Y-%m-%d'),
+        'total_commandes': total_commandes,
+        'total_ca': total_ca,
+        'total_quantite': total_quantite,
+        'total_ca_produits': total_ca_produits,
+        'total_jours': total_jours,
+        'total_commandes_period': total_commandes_period,
+        'total_commandes_amount': total_commandes_amount,
+        'total_payees_period': total_payees_period,
+        'total_payees': total_payees,
+        'total_postes': total_postes,
+    }
+    
+    
+    return render(request, 'gestion/statistiques.html', context)
+def stats_data(request):
+    # Cette vue peut être utilisée pour des requêtes AJAX
+    # Reprend la même logique que la vue statistiques mais retourne du JSON
+    period = request.GET.get('period', 'day')
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    
+    if not date_from or not date_to:
+        date_to = timezone.now().date()
+        date_from = date_to - timedelta(days=30)
+    else:
+        date_from = datetime.strptime(date_from, '%Y-%m-%d').date()
+        date_to = datetime.strptime(date_to, '%Y-%m-%d').date()
+    
+    commandes_period = CommandeLivreur.objects.filter(
+        date__date__gte=date_from,
+        date__date__lte=date_to
+    ).annotate(
+        period=TruncDay('date') if period == 'day' else 
+              (TruncMonth('date') if period == 'month' else TruncYear('date'))
+    ).values('period').annotate(
+        count=Count('id'),
+        total=Sum('total'),
+        payees=Count('id', filter=Q(payee=True))
+    ).order_by('period')
+    
+    period_labels = [item['period'].strftime('%d/%m/%Y' if period == 'day' else '%m/%Y' if period == 'month' else '%Y') 
+                    for item in commandes_period]
+    commandes_data = [item['count'] for item in commandes_period]
+    commandes_total = [float(item['total'] or 0) for item in commandes_period]
+    
+    data = {
+        'period_labels': period_labels,
+        'commandes_data': commandes_data,
+        'commandes_total': commandes_total,
+    }
+    
+    return JsonResponse(data)

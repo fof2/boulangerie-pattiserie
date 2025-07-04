@@ -10,207 +10,156 @@ from django.db.utils import IntegrityError
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'boulangerie.settings')
 django.setup()
 
-from gestion.models import (
-    Poste, Ouvrier, AffectationPoste, Livreur, Produit, 
-    CommandeLivreur, LigneCommande, EntreeStock
-)
-
-# Liste étendue de noms ivoiriens réalistes
-PRENOMS_MASCULINS = ["Koffi", "Yao", "Kouamé", "Jean", "Serge", "Alain", "Moussa", 
-                    "Daouda", "Abdoul", "Mohamed", "Paul", "Armand", "Ismaël", "Mamadou"]
-PRENOMS_FEMININS = ["Aminata", "Fatou", "Aïcha", "Mariam", "Adjoua", "Affoué", 
-                   "Naminata", "Ramatoulaye", "Kadidja", "Salimata", "Régina", "Bintou", "Estelle"]
-NOMS = ["Kouassi", "Koné", "Yao", "Bamba", "Diabaté", "Sangaré", "Touré", 
-       "Coulibaly", "Ouattara", "Diarra", "Yéo", "Keita", "Cissé", "Aké", "Soro", "Fofana", "Kouadio"]
-
-def generer_telephone():
-    """Génère un numéro de téléphone ivoirien valide (01, 05 ou 07)"""
-    prefixe = random.choice(['01', '05', '07'])
-    return prefixe + ''.join([str(random.randint(0, 9)) for _ in range(8)])
-
-def generer_nom_complet():
-    """Génère un nom complet ivoirien réaliste"""
-    if random.choice([True, False]):  # Homme ou femme
-        return f"{random.choice(PRENOMS_MASCULINS)} {random.choice(NOMS)}"
-    else:
-        return f"{random.choice(PRENOMS_FEMININS)} {random.choice(NOMS)}"
-
-def creer_postes():
-    """Crée les différents postes de la boulangerie"""
-    postes = [
-        {"nom": "Boulanger", "remuneration": Decimal('2500'), "mode_paiement": "jour"},
-        {"nom": "Vendeur", "remuneration": Decimal('2000'), "mode_paiement": "jour"},
-        {"nom": "Livreur", "remuneration": Decimal('3000'), "mode_paiement": "jour"},
-        {"nom": "Gérant", "remuneration": Decimal('500000'), "mode_paiement": "mois"},
-        {"nom": "Comptable", "remuneration": Decimal('300000'), "mode_paiement": "mois"},
-        {"nom": "Pâtissier", "remuneration": Decimal('2800'), "mode_paiement": "jour"},
-    ]
-    
-    for poste in postes:
-        Poste.objects.get_or_create(nom=poste["nom"], defaults=poste)
-    print(f"✅ {len(postes)} postes créés")
-
-def creer_ouvriers():
-    """Crée les ouvriers avec des données réalistes"""
-    created = 0
-    while created < 15:  # On veut 15 ouvriers
-        try:
-            nom = generer_nom_complet()
-            telephone = generer_telephone()
-            
-            Ouvrier.objects.create(
-                nom=nom,
-                telephone=telephone
-            )
-            created += 1
-        except IntegrityError:
-            continue  # Si le nom ou téléphone existe déjà, on réessaye
-    
-    print(f"✅ {created} ouvriers créés")
-
-def creer_affectations():
-    """Affecte les ouvriers à des postes"""
-    postes = list(Poste.objects.all())
-    
-    for ouvrier in Ouvrier.objects.all():
-        date_debut = timezone.now() - timedelta(days=random.randint(30, 365))
-        
-        # 20% de chance que l'affectation soit terminée
-        date_fin = None
-        if random.random() < 0.2:
-            date_fin = date_debut + timedelta(days=random.randint(30, 180))
-        
-        AffectationPoste.objects.create(
-            ouvrier=ouvrier,
-            poste=random.choice(postes),
-            date_debut=date_debut,
-            date_fin=date_fin
-        )
-    print(f"✅ {Ouvrier.objects.count()} affectations créées")
-
-def creer_livreurs():
-    """Crée les livreurs avec au moins 3 actifs"""
-    created = 0
-    actifs = 0
-    
-    while created < 8:  # On veut 8 livreurs
-        try:
-            nom = generer_nom_complet()
-            telephone = generer_telephone()
-            
-            # On s'assure qu'au moins 3 sont actifs
-            est_actif = random.choice([True, False]) if actifs >= 3 else True
-            
-            Livreur.objects.create(
-                nom=nom,
-                telephone=telephone,
-                actif=est_actif
-            )
-            created += 1
-            if est_actif:
-                actifs += 1
-        except IntegrityError:
-            continue
-    
-    print(f"✅ {created} livreurs créés (dont {actifs} actifs)")
+from gestion.models import Produit, Livreur, CommandeLivreur, LigneCommande
 
 def creer_produits():
-    """Crée les produits de la boulangerie"""
+    """Crée des produits réalistes pour une boulangerie"""
     produits = [
-        {"nom": "Pain", "prix_vente": Decimal('150'), "prix_livreur": Decimal('100'), "stock": 100},
-        {"nom": "Croissant", "prix_vente": Decimal('300'), "prix_livreur": Decimal('250'), "stock": 50},
-        {"nom": "Baguette", "prix_vente": Decimal('200'), "prix_livreur": Decimal('150'), "stock": 80},
-        {"nom": "Gateau", "prix_vente": Decimal('500'), "prix_livreur": Decimal('400'), "stock": 30},
-        {"nom": "Donut", "prix_vente": Decimal('250'), "prix_livreur": Decimal('200'), "stock": 60},
-        {"nom": "Pain au chocolat", "prix_vente": Decimal('350'), "prix_livreur": Decimal('300'), "stock": 40},
+        {"nom": "Pain traditionnel", "prix_vente": 200, "prix_livreur": 150},
+        {"nom": "Baguette", "prix_vente": 250, "prix_livreur": 200},
+        {"nom": "Croissant", "prix_vente": 300, "prix_livreur": 250},
+        {"nom": "Pain au chocolat", "prix_vente": 350, "prix_livreur": 300},
+        {"nom": "Donut", "prix_vente": 250, "prix_livreur": 200},
+        {"nom": "Tarte aux pommes", "prix_vente": 1500, "prix_livreur": 1300},
     ]
     
-    for produit in produits:
-        Produit.objects.get_or_create(nom=produit["nom"], defaults=produit)
-    print(f"✅ {len(produits)} produits créés")
+    for p in produits:
+        Produit.objects.get_or_create(
+            nom=p["nom"],
+            defaults={
+                "prix_vente": p["prix_vente"],
+                "prix_livreur": p["prix_livreur"],
+                "stock": random.randint(20, 100)
+            }
+        )
+    print(f"✅ {Produit.objects.count()} produits créés")
 
-def creer_entrees_stock():
-    """Crée les entrées en stock"""
-    fournisseurs = ["CI Foods", "Abidjan Farine", "Yamoussoukro Lait", "San Pedro Sucre"]
+def creer_livreurs():
+    """Crée des livreurs avec des noms ivoiriens réalistes"""
+    noms_livreurs = [
+        "Koffi Konan", "Yao Kouassi", "Amani Traoré", 
+        "Fatou Diabaté", "Moussa Cissé", "Aïcha Coulibaly"
+    ]
     
-    for produit in Produit.objects.all():
-        for _ in range(3):  # 3 entrées par produit
-            EntreeStock.objects.create(
-                produit=produit,
-                quantite=random.randint(20, 100),
-                prix_achat=produit.prix_vente * Decimal(str(random.uniform(0.6, 0.8))),
-                fournisseur=random.choice(fournisseurs),
-                responsable=generer_nom_complet()
-            )
-    print(f"✅ {EntreeStock.objects.count()} entrées de stock créées")
+    for nom in noms_livreurs:
+        Livreur.objects.get_or_create(
+            nom=nom,
+            defaults={
+                "telephone": f"07{random.randint(10000000, 99999999)}",
+                "actif": True
+            }
+        )
+    print(f"✅ {Livreur.objects.count()} livreurs créés")
 
-def creer_commandes_livreurs():
-    """Crée des commandes pour les livreurs actifs"""
-    livreurs = list(Livreur.objects.filter(actif=True))
+def creer_commandes():
+    """Crée des commandes réalistes sur les 6 derniers mois"""
     produits = list(Produit.objects.all())
+    livreurs = list(Livreur.objects.filter(actif=True))
     
-    if not livreurs:
-        print("❌ Aucun livreur actif - pas de commandes créées")
+    if not produits or not livreurs:
+        print("❌ Créez d'abord des produits et livreurs")
         return
     
-    for _ in range(20):  # 20 commandes
+    for i in range(120):  # 120 commandes au total
+        # Date aléatoire dans les 6 derniers mois
+        jours_aleatoires = random.randint(1, 180)
+        date_commande = timezone.now() - timedelta(days=jours_aleatoires)
+        
+        # Création de la commande
         commande = CommandeLivreur.objects.create(
             livreur=random.choice(livreurs),
-            total=Decimal('0'),
+            date=date_commande,
+            total=0,
             payee=random.choice([True, False]),
             mode_paiement=random.choice(['espece', 'mobile', 'virement'])
         )
         
-        # Ajoute 1 à 5 produits différents
+        # Ajout de 1 à 5 produits par commande
+        total_commande = 0
         for produit in random.sample(produits, random.randint(1, 5)):
-            LigneCommande.objects.create(
+            quantite = random.randint(1, 10)
+            ligne = LigneCommande.objects.create(
                 commande=commande,
                 produit=produit,
-                quantite=random.randint(1, 10),
+                quantite=quantite,
                 prix_unitaire=produit.prix_livreur
             )
+            total_commande += ligne.total_ligne
         
-        # Met à jour le total
-        commande.total = sum(
-            ligne.quantite * ligne.prix_unitaire 
-            for ligne in commande.lignes.all()
-        )
+        # Mise à jour du total de la commande
+        commande.total = total_commande
         commande.save()
     
     print(f"✅ {CommandeLivreur.objects.count()} commandes créées")
+    print(f"✅ {LigneCommande.objects.count()} lignes de commande créées")
+
+def verifier_donnees():
+    """Vérifie que les données sont correctement liées"""
+    from django.db.models import Sum, Count
+    from django.db.models.functions import ExtractMonth
+    
+    print("\n🔍 Vérification des données:")
+    
+    # 1. Vérification des relations de base
+    try:
+        cmd = CommandeLivreur.objects.first()
+        print(f"Première commande: ID {cmd.id} le {cmd.date} par {cmd.livreur.nom}")
+        
+        lignes = cmd.lignes.all()
+        print(f"Cette commande a {lignes.count()} lignes")
+        
+        # 2. Test des requêtes du dashboard
+        print("\nTest requête produits par mois:")
+        test_produits = LigneCommande.objects.annotate(
+            month=ExtractMonth('commande__date')
+        ).values('month', 'produit__nom').annotate(
+            total=Sum('quantite')
+        ).order_by('month')[:5]
+        
+        for item in test_produits:
+            print(f"Mois {item['month']}: {item['produit__nom']} x{item['total']}")
+            
+        print("\nTest requête chiffre d'affaires:")
+        test_ca = CommandeLivreur.objects.annotate(
+            month=ExtractMonth('date')
+        ).values('month').annotate(
+            total=Sum('total')
+        ).order_by('month')[:6]
+        
+        for item in test_ca:
+            print(f"Mois {item['month']}: {item['total']} FCFA")
+            
+    except Exception as e:
+        print(f"❌ Erreur lors de la vérification: {str(e)}")
 
 def main():
-    """Fonction principale"""
-    print("\n" + "="*50)
-    print("  GÉNÉRATION DES DONNÉES DE LA BOULANGERIE")
-    print("="*50 + "\n")
+    print("\n=== GÉNÉRATION DES DONNÉES DE TEST ===")
+    print("Cette opération va effacer toutes les données existantes!")
+    confirm = input("Voulez-vous continuer? (oui/non): ")
     
-    print("🔄 Nettoyage de la base de données...")
-    models = [LigneCommande, CommandeLivreur, EntreeStock, 
-              AffectationPoste, Produit, Livreur, Ouvrier, Poste]
+    if confirm.lower() != 'oui':
+        print("Annulé")
+        return
     
-    for model in models:
-        model.objects.all().delete()
-    print("✅ Base nettoyée avec succès\n")
+    print("\n🔄 Nettoyage des données existantes...")
+    CommandeLivreur.objects.all().delete()
+    LigneCommande.objects.all().delete()
+    Produit.objects.all().delete()
+    Livreur.objects.all().delete()
     
-    print("🏗️ Création des données...")
-    creer_postes()
-    creer_ouvriers()
-    creer_affectations()
-    creer_livreurs()
+    print("\n🏗️ Création des nouvelles données...")
     creer_produits()
-    creer_entrees_stock()
-    creer_commandes_livreurs()
+    creer_livreurs()
+    creer_commandes()
     
-    print("\n" + "📊 RÉCAPITULATIF FINAL:")
-    print(f"- Postes: {Poste.objects.count()}")
-    print(f"- Ouvriers: {Ouvrier.objects.count()}")
-    print(f"- Livreurs: {Livreur.objects.count()} (dont {Livreur.objects.filter(actif=True).count()} actifs)")
-    print(f"- Produits: {Produit.objects.count()}")
-    print(f"- Commandes: {CommandeLivreur.objects.count()}")
-    print(f"- Lignes de commande: {LigneCommande.objects.count()}")
-    print(f"- Entrées de stock: {EntreeStock.objects.count()}")
-    print("\n🎉 Données générées avec succès!")
+    print("\n✅ Données générées avec succès!")
+    print(f"Total produits: {Produit.objects.count()}")
+    print(f"Total livreurs: {Livreur.objects.count()}")
+    print(f"Total commandes: {CommandeLivreur.objects.count()}")
+    print(f"Total lignes de commande: {LigneCommande.objects.count()}")
+    
+    # Vérification des données
+    verifier_donnees()
 
 if __name__ == "__main__":
     main()
